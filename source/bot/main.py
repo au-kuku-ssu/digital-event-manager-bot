@@ -1,17 +1,21 @@
 import asyncio
 import logging
 import sys
+import os
+
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder  # Better for inline keyboards
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from components.shared.utilities import get_env_data_as_dict
+load_dotenv(join(dirname(__file__), '..', '.env'))
+TOKEN = os.environ.get("TG_BOT_TOKEN")
 
-TOKEN = get_env_data_as_dict(".env")["TG_BOT_TOKEN"]
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
