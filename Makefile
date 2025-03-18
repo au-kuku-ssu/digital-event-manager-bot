@@ -6,3 +6,9 @@ ifeq ($(OS),Windows_NT)
 else
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 endif
+
+install:
+	cd source && uv sync
+
+run:
+	cd source && uv run bot/main.py
