@@ -8,7 +8,7 @@ else
 endif
 
 install:
-	cd source && uv sync
+	uv sync
 
 run:
-	cd source && uv run bot/main.py
+	uv run bot/main.py
