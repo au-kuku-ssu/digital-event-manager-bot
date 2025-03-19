@@ -1,0 +1,12 @@
+en:
+  main_menu:
+    main:
+      caption: |
+        Welcome to <b>Digital Event Manager</b>!
+
+        Please select the option you require to continue.
+      register: 📝 Participant registration
+      draw: 🗳️ Draw
+      reports_evaluation: 📋 Report evaluation
+      program_generation: 📊 Event program generation
+      settings: ⚙️ Settings
