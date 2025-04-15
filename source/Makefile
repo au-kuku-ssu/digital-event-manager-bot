@@ -10,5 +10,9 @@ endif
 install:
 	uv sync
 	uv run pre-commit install
+
 run:
 	uv run bot/main.py
+
+dev:
+	uv run bot/main.py --autoreload

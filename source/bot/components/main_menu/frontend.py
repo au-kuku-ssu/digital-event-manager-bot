@@ -25,7 +25,7 @@ async def frontend_cb_mm_main(callback_query: types.CallbackQuery, bot: Bot) -> 
 
   keyboard = InlineKeyboardBuilder()
 
-  keyboard.button(text=getstr(lang, "main_menu.main.register"), callback_data="cb_pr_main")
+  keyboard.button(text=getstr(lang, "main_menu.main.register"), callback_data="pr_cb_pre_main")
   keyboard.button(text=getstr(lang, "main_menu.main.draw"), callback_data="cb_pd_main")
   keyboard.button(text=getstr(lang, "main_menu.main.reports_evaluation"), callback_data="cb_re_main")
   keyboard.button(text=getstr(lang, "main_menu.main.program_generation"), callback_data="cb_pg_main")
@@ -37,7 +37,7 @@ async def frontend_cb_mm_main(callback_query: types.CallbackQuery, bot: Bot) -> 
 
 async def frontend_cb_mm_settings(callback_query: types.CallbackQuery, bot: Bot) -> None:
   lang = "ru"
-  
+
   keyboard = InlineKeyboardBuilder()
   keyboard.button(text=getstr(lang, "main_menu.settings.back"), callback_data="cb_mm_main")
 
