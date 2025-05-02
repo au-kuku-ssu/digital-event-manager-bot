@@ -39,7 +39,7 @@ def load_locales(path):
       data = yaml.safe_load(file) or {}  # Load YAML data, default to empty dict if None
       merged_data = merge(merged_data, data)
 
-    return merged_data
+  return merged_data
 
 def get_locale_str(dictionary, keys, default=None):
   return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)

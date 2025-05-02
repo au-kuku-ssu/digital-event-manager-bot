@@ -1,6 +1,12 @@
 en:
   reports_evaluation:
-    main:
+    auth:
       caption: |
-        TODO
-      back: TODO
+        Enter authorization code for access to reports evaluation menu.
+      invalid_code: Invalid code. Try again.
+    menu:
+      caption: "Welcome, <b>{jury_name}</b>."
+      evaluate: 📋 Grade reports
+      results: 📊 Check results
+      edit: ⚙️ Edit grades (chairman)
+      back: ⬅️ Back

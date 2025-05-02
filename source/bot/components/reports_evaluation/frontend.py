@@ -13,8 +13,8 @@ async def frontend_cb_re_main(callback_query: types.CallbackQuery, bot: Bot) -> 
   lang = "ru"
 
   keyboard = InlineKeyboardBuilder()
-  keyboard.button(text=getstr(lang, "reports_evaluation.main.back"), callback_data="cb_mm_main")
+  keyboard.button(text=getstr(lang, "reports_evaluation.menu.back"), callback_data="cb_mm_main")
 
   keyboard.adjust(1)
 
-  await callback_query.message.edit_text(getstr(lang, "reports_evaluation.main.caption"), reply_markup=keyboard.as_markup())
+  await callback_query.message.edit_text(getstr(lang, "reports_evaluation.auth.caption"), reply_markup=keyboard.as_markup())
