@@ -1,6 +1,6 @@
 from components.reports_evaluation.data.placeholder_jury import PLACEHOLDER_JURY
 
-def re_check_access_code(code: str):
+async def re_check_access_code(code: str):
   """
   Checks if access code is valid.
   """

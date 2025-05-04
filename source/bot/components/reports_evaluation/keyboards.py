@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from components.shared.locale import get_locale_str, load_locales
 from os.path import join, dirname
 
-locale = load_locales(join(dirname(__file__), "..", "locale"))
+locale = load_locales(join(dirname(__file__), "locale"))
 getstr = lambda lang, path: get_locale_str(locale, f"{lang}.{path}")
 
 def re_get_back_keyboard(lang: str):

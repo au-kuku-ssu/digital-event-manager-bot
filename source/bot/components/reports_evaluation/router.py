@@ -1,9 +1,7 @@
 from aiogram import Bot, Router, types
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from components.reports_evaluation.handlers import frontend_cb_re_auth, frontend_st_re_process_code
+from components.reports_evaluation.frontend import frontend_cb_re_auth, frontend_st_re_process_code
 from components.reports_evaluation.fsm_states import REAuthStates
 
 router = Router()
