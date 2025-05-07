@@ -2,9 +2,11 @@ from aiogram import Bot, Router, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from components.reports_evaluation.frontend import (
+from components.reports_evaluation.features.auth.handlers import (
     frontend_cb_re_auth,
     frontend_st_re_process_code,
+)
+from components.reports_evaluation.features.evaluation.handlers import (
     frontend_cb_re_show_presentations,
     frontend_cb_re_choose_presentation,
     frontend_cb_re_handle_eval_score,
@@ -12,6 +14,8 @@ from components.reports_evaluation.frontend import (
     frontend_cb_re_eval_comment,
     frontend_cb_re_skip_comments,
     frontend_st_re_eval_comment,
+)
+from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
 )
 from components.reports_evaluation.fsm_states import REAuthStates, REEvaluationStates

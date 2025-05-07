@@ -2,11 +2,64 @@ en:
   reports_evaluation:
     auth:
       caption: |
-        Enter authorization code for access to reports evaluation menu.
-      invalid_code: Invalid code. Try again.
+        🔐 Enter the access code to authorize in the presentation evaluation service.
+      invalid_code: ❌ The code entered is invalid. Please try again.
+      continue_caption: |
+        ✅ You have been successfully authorized. Click the button to continue.
+      continue: ➡️ Continue
     menu:
-      caption: "Welcome, <b>{jury_name}</b>."
-      evaluate: 📋 Grade reports
-      results: 📊 Check results
-      edit: ⚙️ Edit grades (chairman)
-      back: ⬅️ Back
+      caption: "Welcome, <b>{jury_name}</b>.\nPlease choose an action:"
+      evaluate: 📋 Evaluate Presentation
+      results: 📊 View Results (WIP)
+      edit: ⚙️ Edit Score (Chair) (WIP)
+      back: ⬅️ Back to Menu
+      back_to_main_menu: ⬅️ Back to Main Menu
+    presents:
+      caption: 🔵 Click the button with the presentation number to evaluate it.
+      no_presents_available: |
+        🔵 No presentations are available for evaluation at the moment.
+      back: ️⏪ Previous page
+      forward: ⏩ Next page
+      theme: 🎓 <b>Theme:</b>
+      speakers: 🗣️ <b>Speakers:</b>
+      description: 📝 <b>Description:</b>
+    evaluation:
+      return: ⏪ Return
+      organization: |
+          🧩 <b>Evaluation: Organization</b>
+          How logical and coherent is the presentation.
+          This includes structure, flow, and integrity of the presented material.
+
+          📝 Please select a score from 0 to 4.
+      content: |
+          📚 <b>Evaluation: Content</b>
+          The depth of understanding of the topic and the completeness of the key aspects covered.
+
+          📝 Please select a score from 0 to 4.
+      visuals: |
+          🎨 <b>Evaluation: Visuals</b>
+          How well the presentation matches the theme, includes key points, is concise, and avoids text overload.
+
+          📝 Please select a score from 0 to 4.
+      mechanics: |
+          ✍️ <b>Evaluation: Mechanics</b>
+          Grammar correctness, clarity of phrasing, and pronunciation.
+
+          📝 Please select a score from 0 to 4.
+      delivery: |
+          🎤 <b>Evaluation: Delivery</b>
+          Confidence, expressiveness, audience engagement, and involvement of the speaker.
+
+          📝 Please select a score from 0 to 4.
+      final_score: |
+          ✅ <b>Final Check</b>
+          Make sure all criteria are evaluated. After confirmation, the scores will be saved.
+      comment: |
+          💬 <b>Comment on the Score</b>
+          Here you can leave additional notes or explanations regarding the scores you have given.
+
+          🔵 If you have no comments, click the button.
+      skip_comments: ⏭️ Skip
+      decline: ❌ Re-enter Scores
+      accept: ✅ Confirm Scores
+      marks_accepted: ✅ Scores have been successfully submitted!
