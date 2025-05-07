@@ -2,25 +2,36 @@ from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from components.reports_evaluation.data.criterion_data import EVAL_CRITERIA
-from components.shared.locale import get_locale_str, load_locales
-from os.path import join, dirname
-
-locale = load_locales(join(dirname(__file__), "locale"))
-getstr = lambda lang, path: get_locale_str(locale, f"{lang}.{path}")
+from components.reports_evaluation.utils import getstr
 
 
-def re_get_back_keyboard(lang: str):
+# def re_get_back_keyboard(lang: str):
+#     """
+#     Creates and returns the keyboard with a back button to the main menu.
+#     """
+#     keyboard = InlineKeyboardBuilder()
+#
+#     keyboard.button(
+#         text=getstr(lang, "reports_evaluation.menu.back"), callback_data="cb_mm_main"
+#     )
+#     keyboard.adjust(1)
+#
+#     return keyboard.as_markup()
+
+
+def re_get_auth_continue_keyboard(lang: str):
     """
-    Creates and returns the keyboard with a back button to the main menu.
+    Creates and returns the caption and the keyboard with a continue button to the main menu.
     """
+    caption = getstr(lang, "reports_evaluation.auth.continue_caption")
     keyboard = InlineKeyboardBuilder()
 
     keyboard.button(
-        text=getstr(lang, "reports_evaluation.menu.back"), callback_data="cb_mm_main"
+        text=getstr(lang, "reports_evaluation.auth.continue"),
+        callback_data="cb_re_main_menu",
     )
-    keyboard.adjust(1)
 
-    return keyboard.as_markup()
+    return caption, keyboard.as_markup()
 
 
 def re_get_main_menu_keyboard(lang: str):
@@ -41,7 +52,8 @@ def re_get_main_menu_keyboard(lang: str):
         text=getstr(lang, "reports_evaluation.menu.edit"), callback_data="cb_mm_main"
     )
     keyboard.button(
-        text=getstr(lang, "reports_evaluation.menu.back"), callback_data="cb_mm_main"
+        text=getstr(lang, "reports_evaluation.menu.back_to_main_menu"),
+        callback_data="cb_mm_main",
     )
     keyboard.adjust(1)
 
@@ -65,7 +77,7 @@ def re_get_presentations_keyboard(
         keyboard = InlineKeyboardBuilder()
         keyboard.button(
             text=getstr(lang, "reports_evaluation.menu.back"),
-            callback_data="cb_mm_main",
+            callback_data="cb_re_main_menu",
         )
         keyboard.adjust(1)
         return None, keyboard.as_markup()
@@ -123,7 +135,7 @@ def re_get_presentations_keyboard(
     keyboard.row(
         types.InlineKeyboardButton(
             text=getstr(lang, "reports_evaluation.menu.back"),
-            callback_data="cb_mm_main",
+            callback_data="cb_re_main_menu",
         )
     )
 
@@ -165,7 +177,7 @@ def re_get_criterion_keyboard(lang: str, criterion: str, score_range: int = 5):
     nav_buttons.append(
         types.InlineKeyboardButton(
             text=getstr(lang, "reports_evaluation.menu.back"),
-            callback_data="cb_mm_main",
+            callback_data="cb_re_main_menu",
         )
     )
     keyboard.row(*nav_buttons)

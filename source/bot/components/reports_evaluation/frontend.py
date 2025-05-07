@@ -1,8 +1,6 @@
 from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
 
-from os.path import join, dirname
-
 from aiogram.types import CallbackQuery
 
 from components.main_menu.frontend import frontend_cb_mm_main, frontend_cmd_mm_start
@@ -18,12 +16,15 @@ from components.reports_evaluation.keyboards import (
     re_get_criterion_keyboard,
     re_get_final_score_keyboard,
     re_get_commentary_keyboard,
+    re_get_auth_continue_keyboard,
 )
-from components.reports_evaluation.utils import re_check_access_code, re_ensure_auth
-from components.shared.locale import load_locales, get_locale_str
-
-locale = load_locales(join(dirname(__file__), "locale"))
-getstr = lambda lang, path: get_locale_str(locale, f"{lang}.{path}")
+from components.reports_evaluation.utils import (
+    re_check_access_code,
+    re_require_auth,
+    getstr,
+    re_add_auth_message,
+    re_delete_auth_messages,
+)
 
 
 async def frontend_cb_re_auth(
@@ -32,13 +33,17 @@ async def frontend_cb_re_auth(
     """
     Shows user prompt for entering access code.
     """
+    # TODO: Add reply button to return to main_menu
     await state.clear()
     lang = "ru"
 
     await state.set_state(REAuthStates.waiting_for_code)
-    await callback_query.message.edit_text(
+
+    msg = await callback_query.message.edit_text(
         getstr(lang, "reports_evaluation.auth.caption")
     )
+
+    await re_add_auth_message(state, msg.message_id)
 
 
 async def frontend_st_re_process_code(
@@ -52,34 +57,53 @@ async def frontend_st_re_process_code(
     lang = "ru"
     code = message.text.strip()
 
+    # Save user message
+    await re_add_auth_message(state, message.message_id)
+
     juror = await re_check_access_code(code)
 
     if juror:
         await state.update_data(jury_code=code)
         await state.set_state(REAuthStates.authorized)
-        await frontend_re_show_main_menu(message, bot, state)
+
+        caption, keyboard = re_get_auth_continue_keyboard(lang)
+
+        await message.answer(
+            text=caption,
+            reply_markup=keyboard,
+        )
     else:
-        await message.answer(getstr(lang, "reports_evaluation.auth.invalid_code"))
+        # Save invalid code message for deletion
+        msg = await message.answer(getstr(lang, "reports_evaluation.auth.invalid_code"))
+        await re_add_auth_message(state, msg.message_id)
 
 
-async def frontend_re_show_main_menu(
-    message: types.Message, bot: Bot, state: FSMContext
+@re_require_auth
+async def frontend_cb_re_main_menu(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
     Handles showing main menu of reports evaluation.
     """
     lang = "ru"
     state_data = await state.get_data()
+
+    # Delete auth messages
+    if "re_auth_message_ids" in state_data:
+        print("here")
+        await re_delete_auth_messages(state, callback_query.message.chat.id, bot)
+
     jury_code = state_data.get("jury_code")
     jury_name = PLACEHOLDER_JURY[jury_code]["name"]
 
     keyboard = re_get_main_menu_keyboard(lang)
-    await message.answer(
+    await callback_query.message.edit_text(
         getstr(lang, "reports_evaluation.menu.caption").format(jury_name=jury_name),
         reply_markup=keyboard,
     )
 
 
+@re_require_auth
 async def frontend_cb_re_show_presentations(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -88,10 +112,6 @@ async def frontend_cb_re_show_presentations(
     """
     lang = "ru"
     page = int(callback_query.data.split(":")[1])
-
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
 
     data = await state.get_data()
     juror_code = data["jury_code"]
@@ -115,6 +135,7 @@ async def frontend_cb_re_show_presentations(
     )
 
 
+@re_require_auth
 async def frontend_cb_re_choose_presentation(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -122,10 +143,6 @@ async def frontend_cb_re_choose_presentation(
     Handles starting of report evaluation.
     """
     lang = "ru"
-
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
 
     pres_id = callback_query.data.split(":")[1]
     await state.update_data(
@@ -142,6 +159,7 @@ async def frontend_cb_re_choose_presentation(
     )
 
 
+@re_require_auth
 async def frontend_cb_re_handle_eval_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -150,10 +168,6 @@ async def frontend_cb_re_handle_eval_score(
     Saves the score in FSM state and moves to the next criterion, or finalizes if it's the last one.
     """
     lang = "ru"
-
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
 
     _, criterion, value = callback_query.data.split(":")
     value = int(value)
@@ -180,6 +194,7 @@ async def frontend_cb_re_handle_eval_score(
     )
 
 
+@re_require_auth
 async def frontend_cb_re_return_to_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -188,10 +203,6 @@ async def frontend_cb_re_return_to_score(
     Resets the score in state and re-displays the evaluation keyboard for that criterion.
     """
     lang = "ru"
-
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
 
     criterion = callback_query.data.split(":")[1]
 
@@ -209,6 +220,7 @@ async def frontend_cb_re_return_to_score(
     )
 
 
+@re_require_auth
 async def frontend_re_finalize_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -217,24 +229,19 @@ async def frontend_re_finalize_score(
     """
     lang = "ru"
 
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
-
     data = await state.get_data()
     scores = dict(data.get("scores", {}))
     pres_id = data.get("pres_id")
     print(f"[DEBUG] {scores}")
 
-    # Check if all criteria are in place
-    # TODO: Unnecessary check?
-    missing = [criterion for criterion in EVAL_CRITERIA if criterion not in scores]
-    if missing:
-        await callback_query.answer(
-            text="Что-то пошло не так. Попробуйте снова.", show_alert=True
-        )
-        await frontend_cb_mm_main(callback_query, bot)
-        return
+    # # Check if all criteria are in place
+    # missing = [criterion for criterion in EVAL_CRITERIA if criterion not in scores]
+    # if missing:
+    #     await callback_query.answer(
+    #         text="Что-то пошло не так. Попробуйте снова.", show_alert=True
+    #     )
+    #     await frontend_cb_mm_main(callback_query, bot)
+    #     return
 
     caption, keyboard = re_get_final_score_keyboard(lang, scores, pres_id)
 
@@ -245,6 +252,7 @@ async def frontend_re_finalize_score(
     )
 
 
+@re_require_auth
 async def frontend_cb_re_eval_comment(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -253,10 +261,6 @@ async def frontend_cb_re_eval_comment(
     Prompts user to leave optional feedback for the evaluated presentation.
     """
     lang = "ru"
-
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
 
     await state.set_state(REEvaluationStates.waiting_for_comment)
 
@@ -296,6 +300,7 @@ async def re_submit_scores(state: FSMContext, comments: str = ""):
         print(f"[ERROR] Presentation {pres_id} not found")
 
 
+@re_require_auth
 async def frontend_cb_re_skip_comments(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
@@ -305,15 +310,12 @@ async def frontend_cb_re_skip_comments(
     """
     lang = "ru"
 
-    # Check auth
-    if not await re_ensure_auth(callback_query, bot, state):
-        return
-
     await re_submit_scores(state)
 
     await callback_query.message.answer(
         text=getstr(lang, "reports_evaluation.evaluation.marks_accepted"),
     )
+    # TODO: Placeholder
     await frontend_cb_mm_main(callback_query, bot)
 
 
@@ -334,4 +336,6 @@ async def frontend_st_re_eval_comment(
     await message.answer(
         text=getstr(lang, "reports_evaluation.evaluation.marks_accepted"),
     )
+    # TODO: Placeholder
+    # Should offer the ability to continue to cb_re_main_menu or change the commentary.
     await frontend_cmd_mm_start(message, bot)

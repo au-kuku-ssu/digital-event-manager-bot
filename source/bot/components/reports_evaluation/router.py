@@ -12,6 +12,7 @@ from components.reports_evaluation.frontend import (
     frontend_cb_re_eval_comment,
     frontend_cb_re_skip_comments,
     frontend_st_re_eval_comment,
+    frontend_cb_re_main_menu,
 )
 from components.reports_evaluation.fsm_states import REAuthStates, REEvaluationStates
 
@@ -23,6 +24,9 @@ router = Router()
 async def cb_re_main_menu(
     callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers the authentication process.
+    """
     await frontend_cb_re_auth(callback_query, bot, state)
 
 
@@ -30,7 +34,21 @@ async def cb_re_main_menu(
 async def st_re_process_code(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Processes code entered by user.
+    """
     await frontend_st_re_process_code(message, bot, state)
+
+
+# Main menu
+@router.callback_query(lambda c: c.data == "cb_re_main_menu")
+async def cb_re_show_main_menu(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Triggers reports evaluation main menu. May trigger after successful authentication or be called in features.
+    """
+    await frontend_cb_re_main_menu(callback_query, bot, state)
 
 
 # Presents
@@ -38,6 +56,9 @@ async def st_re_process_code(
 async def cb_re_change_pres_page(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers showing presentations information to the user.
+    """
     await frontend_cb_re_show_presentations(callback_query, bot, state)
 
 
@@ -46,6 +67,9 @@ async def cb_re_change_pres_page(
 async def cb_re_choose_presentation(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers report evaluation.
+    """
     await frontend_cb_re_choose_presentation(callback_query, bot, state)
 
 
@@ -53,6 +77,9 @@ async def cb_re_choose_presentation(
 async def cb_re_handle_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers evaluation criterion saving and showing the next criterion in reports evaluation.
+    """
     await frontend_cb_re_handle_eval_score(callback_query, bot, state)
 
 
@@ -60,6 +87,9 @@ async def cb_re_handle_score(
 async def cb_re_return_to_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers returning to the previous criterion in reports evaluation.
+    """
     await frontend_cb_re_return_to_score(callback_query, bot, state)
 
 
@@ -67,6 +97,9 @@ async def cb_re_return_to_score(
 async def cb_re_eval_comment(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers evaluation comment.
+    """
     await frontend_cb_re_eval_comment(callback_query, bot, state)
 
 
@@ -74,6 +107,9 @@ async def cb_re_eval_comment(
 async def cb_re_skip_comment(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers skipping comment.
+    """
     await frontend_cb_re_skip_comments(callback_query, bot, state)
 
 
@@ -81,4 +117,7 @@ async def cb_re_skip_comment(
 async def st_re_eval_comment(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
+    """
+    Triggers menu showing 'continue' button after the comment.
+    """
     await frontend_st_re_eval_comment(message, bot, state)
