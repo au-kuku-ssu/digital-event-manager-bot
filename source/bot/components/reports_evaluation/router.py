@@ -8,12 +8,12 @@ from components.reports_evaluation.features.auth.handlers import (
 )
 from components.reports_evaluation.features.evaluation.handlers import (
     frontend_cb_re_show_presentations,
-    frontend_cb_re_choose_presentation,
-    frontend_cb_re_handle_eval_score,
-    frontend_cb_re_return_to_score,
+    frontend_cb_re_eval_choose_presentation,
+    frontend_cb_re_eval_handle_score,
+    frontend_cb_re_eval_return_to_score,
     frontend_cb_re_eval_comment,
-    frontend_cb_re_skip_comments,
     frontend_st_re_eval_comment,
+    frontend_cb_re_eval_marks_accepted,
 )
 from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
@@ -74,7 +74,7 @@ async def cb_re_choose_presentation(
     """
     Triggers report evaluation.
     """
-    await frontend_cb_re_choose_presentation(callback_query, bot, state)
+    await frontend_cb_re_eval_choose_presentation(callback_query, bot, state)
 
 
 @router.callback_query(F.data.startswith("cb_re_score:"))
@@ -84,7 +84,7 @@ async def cb_re_handle_score(
     """
     Triggers evaluation criterion saving and showing the next criterion in reports evaluation.
     """
-    await frontend_cb_re_handle_eval_score(callback_query, bot, state)
+    await frontend_cb_re_eval_handle_score(callback_query, bot, state)
 
 
 @router.callback_query(F.data.startswith("cb_re_return_to_score:"))
@@ -94,7 +94,7 @@ async def cb_re_return_to_score(
     """
     Triggers returning to the previous criterion in reports evaluation.
     """
-    await frontend_cb_re_return_to_score(callback_query, bot, state)
+    await frontend_cb_re_eval_return_to_score(callback_query, bot, state)
 
 
 @router.callback_query(lambda c: c.data == "cb_re_eval_comment")
@@ -107,14 +107,14 @@ async def cb_re_eval_comment(
     await frontend_cb_re_eval_comment(callback_query, bot, state)
 
 
-@router.callback_query(lambda c: c.data == "cb_re_skip_comment")
-async def cb_re_skip_comment(
+@router.callback_query(lambda c: c.data == "cb_re_eval_marks_accepted")
+async def cb_re_eval_marks_accepted(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
-    Triggers skipping comment.
+    Triggers showing marks accepted or declined in reports evaluation.
     """
-    await frontend_cb_re_skip_comments(callback_query, bot, state)
+    await frontend_cb_re_eval_marks_accepted(callback_query, bot, state)
 
 
 @router.message(REEvaluationStates.waiting_for_comment)
@@ -122,6 +122,6 @@ async def st_re_eval_comment(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     """
-    Triggers menu showing 'continue' button after the comment.
+    Triggers menu showing 'continue' or 'edit' button after the comment.
     """
     await frontend_st_re_eval_comment(message, bot, state)

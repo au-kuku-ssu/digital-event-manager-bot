@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 
 from aiogram.types import CallbackQuery
 
-from components.main_menu.frontend import frontend_cb_mm_main, frontend_cmd_mm_start
 from components.reports_evaluation.data.criterion_data import EVAL_CRITERIA
 from components.reports_evaluation.data.placeholder_presentations import (
     PLACEHOLDER_PRESENTS,
@@ -12,9 +11,12 @@ from components.reports_evaluation.features.evaluation.keyboards import (
     re_get_presentations_keyboard,
     re_get_criterion_keyboard,
     re_get_final_score_keyboard,
-    re_get_commentary_keyboard,
+    re_get_comment_keyboard,
+    re_get_marks_accepted_keyboard,
+    re_get_comment_check_keyboard,
 )
 from components.reports_evaluation.fsm_states import REEvaluationStates
+from components.reports_evaluation.services.evaluation import re_submit_scores
 from components.reports_evaluation.utils import getstr, re_require_auth
 
 
@@ -51,7 +53,7 @@ async def frontend_cb_re_show_presentations(
 
 
 @re_require_auth
-async def frontend_cb_re_choose_presentation(
+async def frontend_cb_re_eval_choose_presentation(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
@@ -60,12 +62,7 @@ async def frontend_cb_re_choose_presentation(
     lang = "ru"
 
     pres_id = callback_query.data.split(":")[1]
-    await state.update_data(
-        {
-            "pres_id": pres_id,
-            "scores": {},
-        }
-    )
+    await state.update_data(pres_id=pres_id, scores={})
     caption, keyboard = re_get_criterion_keyboard(lang, "organization")
 
     await callback_query.message.edit_text(
@@ -75,7 +72,7 @@ async def frontend_cb_re_choose_presentation(
 
 
 @re_require_auth
-async def frontend_cb_re_handle_eval_score(
+async def frontend_cb_re_eval_handle_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
@@ -95,7 +92,7 @@ async def frontend_cb_re_handle_eval_score(
     # Check if the current criterion is the last one
     next_criterion_idx = EVAL_CRITERIA.index(criterion) + 1
     if next_criterion_idx >= len(EVAL_CRITERIA):
-        await frontend_re_finalize_score(callback_query, bot, state)
+        await frontend_re_eval_finalize_score(callback_query, bot, state)
         return
 
     # Show next criterion
@@ -110,7 +107,7 @@ async def frontend_cb_re_handle_eval_score(
 
 
 @re_require_auth
-async def frontend_cb_re_return_to_score(
+async def frontend_cb_re_eval_return_to_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
@@ -136,7 +133,7 @@ async def frontend_cb_re_return_to_score(
 
 
 @re_require_auth
-async def frontend_re_finalize_score(
+async def frontend_re_eval_finalize_score(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """
@@ -178,60 +175,14 @@ async def frontend_cb_re_eval_comment(
     lang = "ru"
 
     await state.set_state(REEvaluationStates.waiting_for_comment)
+    await state.update_data(pres_comments=None)
 
-    caption, keyboard = re_get_commentary_keyboard(lang)
+    caption, keyboard = re_get_comment_keyboard(lang)
 
     await callback_query.message.edit_text(
         text=caption,
         reply_markup=keyboard,
     )
-
-
-# TODO: Change placeholders to db change
-async def re_submit_scores(state: FSMContext, comments: str = ""):
-    """
-    Stores the submitted scores and optional comments into the PLACEHOLDER_PRESENTS data structure.
-    Finds the presentation by ID and attaches the scores by juror ID.
-    """
-    data = await state.get_data()
-    scores = dict(data.get("scores", {}))
-    pres_id = data.get("pres_id")
-    juror_id = data.get("jury_code")
-
-    if not all([pres_id, juror_id, scores]):
-        print("[ERROR] Missing data in state")
-        print(f"[DEBUG] {scores}, {pres_id}, {juror_id}")
-        return
-
-    # Set scores
-    for pres in PLACEHOLDER_PRESENTS:
-        if pres["id"] == pres_id:
-            pres["jury_scores"][juror_id] = scores
-            if comments.strip():
-                pres["comments"][juror_id] = comments.strip()
-            print(f"[DEBUG] Updated presentation: {pres}")
-            break
-    else:
-        print(f"[ERROR] Presentation {pres_id} not found")
-
-
-@re_require_auth
-async def frontend_cb_re_skip_comments(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
-) -> None:
-    """
-    Finalizes the evaluation when the reviewer chooses to skip adding comments.
-    Calls score submission logic and returns to the main menu.
-    """
-    lang = "ru"
-
-    await re_submit_scores(state)
-
-    await callback_query.message.answer(
-        text=getstr(lang, "reports_evaluation.evaluation.marks_accepted"),
-    )
-    # TODO: Placeholder
-    await frontend_cb_mm_main(callback_query, bot)
 
 
 async def frontend_st_re_eval_comment(
@@ -243,14 +194,34 @@ async def frontend_st_re_eval_comment(
     """
     lang = "ru"
 
-    commentary = message.text
-    print(f"[DEBUG] {commentary}")
+    comment = message.text.strip()
+    await state.set_state(REEvaluationStates.comment_added)
+    await state.update_data(pres_comments=comment)
 
-    await re_submit_scores(state, commentary)
+    caption, keyboard = re_get_comment_check_keyboard(lang, comment)
 
     await message.answer(
-        text=getstr(lang, "reports_evaluation.evaluation.marks_accepted"),
+        text=caption,
+        reply_markup=keyboard,
     )
-    # TODO: Placeholder
-    # Should offer the ability to continue to cb_re_main_menu or change the commentary.
-    await frontend_cmd_mm_start(message, bot)
+
+
+@re_require_auth
+async def frontend_cb_re_eval_marks_accepted(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Finalizes the evaluation when the reviewer chooses to skip comments or adds them.
+    Calls score submission logic and returns to the main menu.
+    """
+    lang = "ru"
+
+    await state.set_state(REEvaluationStates.marks_accepted)
+    marks_state = await re_submit_scores(state)
+
+    caption, keyboard = re_get_marks_accepted_keyboard(lang, marks_state)
+
+    await callback_query.message.edit_text(
+        text=caption,
+        reply_markup=keyboard,
+    )

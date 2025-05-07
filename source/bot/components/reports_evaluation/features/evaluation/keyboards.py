@@ -160,7 +160,7 @@ def re_get_final_score_keyboard(lang: str, scores: dict[str, int], pres_id: str)
     return caption, keyboard.as_markup()
 
 
-def re_get_commentary_keyboard(lang: str):
+def re_get_comment_keyboard(lang: str):
     """
     Generates the keyboard for the optional commentary step.
     Includes a button to skip writing comments and proceed with submission.
@@ -170,7 +170,51 @@ def re_get_commentary_keyboard(lang: str):
     keyboard = InlineKeyboardBuilder()
     keyboard.button(
         text=getstr(lang, "reports_evaluation.evaluation.skip_comments"),
-        callback_data="cb_re_skip_comment",
+        callback_data="cb_re_eval_marks_accepted",
+    )
+    keyboard.adjust(1)
+
+    return caption, keyboard.as_markup()
+
+
+def re_get_marks_accepted_keyboard(lang: str, marks_state: bool):
+    """
+    Generates caption and keyboard to continue to main menu after skipping comments.
+    """
+    caption = getstr(
+        lang,
+        "reports_evaluation.evaluation.marks_accepted"
+        if marks_state
+        else "reports_evaluation.evaluation.marks_declined",
+    )
+
+    keyboard = InlineKeyboardBuilder()
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.evaluation.marks_continue"),
+        callback_data="cb_re_main_menu",
+    )
+
+    return caption, keyboard.as_markup()
+
+
+def re_get_comment_check_keyboard(lang: str, comment: str):
+    caption = getstr(lang, "reports_evaluation.evaluation.comment_check_caption")
+
+    caption += "\n" + getstr(
+        lang, "reports_evaluation.evaluation.comment_check_comment"
+    ).format(comment=comment)
+
+    keyboard = InlineKeyboardBuilder()
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.evaluation.comment_check_edit"),
+        callback_data="cb_re_eval_comment",
+    )
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.evaluation.comment_check_continue"),
+        callback_data="cb_re_eval_marks_accepted",
     )
     keyboard.adjust(1)
 

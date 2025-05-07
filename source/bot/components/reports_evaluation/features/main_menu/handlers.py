@@ -25,7 +25,6 @@ async def frontend_cb_re_main_menu(
 
     # Delete auth messages
     if "re_auth_message_ids" in state_data:
-        print("here")
         await re_delete_auth_messages(state, callback_query.message.chat.id, bot)
 
     jury_code = state_data.get("jury_code")

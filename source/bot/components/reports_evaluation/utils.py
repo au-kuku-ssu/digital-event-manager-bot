@@ -50,7 +50,7 @@ def re_require_auth(handler):
         if "jury_code" not in state_data:
             # TODO: Lang instead of just text
             await callback_query.answer(
-                text="Authentication  failed.",
+                text="Authentication failed.",
                 reply_markup=types.ReplyKeyboardRemove(),
                 show_alert=True,
             )
@@ -80,10 +80,11 @@ async def re_delete_auth_messages(state: FSMContext, chat_id: int, bot: Bot):
     state_data = await state.get_data()
     msg_ids = state_data.get("re_auth_message_ids", [])
 
-    for msg_id in msg_ids:
-        try:
-            await bot.delete_message(chat_id, msg_id)
-        except TelegramBadRequest:
-            pass
+    if msg_ids:
+        for msg_id in msg_ids:
+            try:
+                await bot.delete_message(chat_id, msg_id)
+            except TelegramBadRequest:
+                pass
 
-    state_data.pop("re_auth_message_ids", None)
+        await state.update_data(re_auth_message_ids=None)

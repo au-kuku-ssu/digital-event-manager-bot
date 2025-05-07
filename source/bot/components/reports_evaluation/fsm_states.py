@@ -8,3 +8,5 @@ class REAuthStates(StatesGroup):
 
 class REEvaluationStates(StatesGroup):
     waiting_for_comment = State()
+    comment_added = State()
+    marks_accepted = State()

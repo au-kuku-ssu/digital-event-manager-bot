@@ -60,6 +60,14 @@ en:
 
           🔵 If you have no comments, click the button.
       skip_comments: ⏭️ Skip
+      comment_check_caption: |
+        ❗ Please review your comment.
+        If you want to edit your comment, click "Edit". If everything looks good, click "Confirm" to proceed.
+      comment_check_comment: "💬 <b>Comment</b>: {comment}"
+      comment_check_edit: 📝 Edit comment
+      comment_check_continue: ➡️ Continue
       decline: ❌ Re-enter Scores
       accept: ✅ Confirm Scores
-      marks_accepted: ✅ Scores have been successfully submitted!
+      marks_accepted: ✅ Scores have been successfully submitted! Press the button to continue.
+      marks_declined: ❌ Something went wrong...
+      marks_continue: ➡️ Continue
