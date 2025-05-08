@@ -34,11 +34,11 @@ async def frontend_cb_re_show_presentations(
     page = int(callback_query.data.split(":")[1])
 
     data = await state.get_data()
-    juror_code = data["jury_code"]
+    jury_code = data["jury_code"]
 
     # Fetch the presentations and generate the keyboard with the appropriate page
     caption, keyboard = re_get_presentations_keyboard(
-        lang, PLACEHOLDER_PRESENTS, juror_code, page
+        lang, PLACEHOLDER_PRESENTS, jury_code, page
     )
 
     # If no presents available

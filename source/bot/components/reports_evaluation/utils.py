@@ -47,7 +47,7 @@ def re_require_auth(handler):
     ):
         state_data = await state.get_data()
 
-        if "jury_code" not in state_data:
+        if "auth_code" not in state_data:
             # TODO: Lang instead of just text
             await callback_query.answer(
                 text="Authentication failed.",

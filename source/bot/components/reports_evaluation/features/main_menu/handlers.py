@@ -27,8 +27,12 @@ async def frontend_cb_re_main_menu(
     if "re_auth_message_ids" in state_data:
         await re_delete_auth_messages(state, callback_query.message.chat.id, bot)
 
-    jury_code = state_data.get("jury_code")
-    jury_name = PLACEHOLDER_JURY[jury_code]["name"]
+    auth_code = state_data.get("auth_code")
+
+    # Update jury_code to auth_code
+    await state.update_data(jury_code=auth_code)
+
+    jury_name = PLACEHOLDER_JURY[auth_code]["name"]
 
     keyboard = re_get_main_menu_keyboard(lang)
     await callback_query.message.edit_text(

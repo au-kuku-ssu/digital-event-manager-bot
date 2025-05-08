@@ -51,7 +51,7 @@ async def frontend_st_re_process_code(
     juror = await re_check_access_code(code)
 
     if juror:
-        await state.update_data(jury_code=code)
+        await state.update_data(auth_code=code)
         await state.set_state(REAuthStates.authorized)
 
         caption, keyboard = re_get_auth_continue_keyboard(lang)
