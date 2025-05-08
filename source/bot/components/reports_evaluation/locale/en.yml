@@ -10,7 +10,7 @@ en:
     menu:
       caption: "Welcome, <b>{jury_name}</b>.\nPlease choose an action:"
       evaluate: 📋 Evaluate Presentation
-      results: 📊 View Results (WIP)
+      results: 📊 View Results
       edit: ⚙️ Edit Score (Chair) (WIP)
       back: ⬅️ Back to Menu
       back_to_main_menu: ⬅️ Back to Main Menu
@@ -71,3 +71,10 @@ en:
       marks_accepted: ✅ Scores have been successfully submitted! Press the button to continue.
       marks_declined: ❌ Something went wrong...
       marks_continue: ➡️ Continue
+    results_table:
+      caption: 📊 Results table
+      header_hint: "📝 Marks: Organization; Content; Visuals; Mechanics; Delivery"
+      final_score: 🎯 Final score
+      empty: ⬜ Results table is empty.
+      back: ️⏪ Previous page
+      forward: ⏩ Next page

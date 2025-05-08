@@ -18,6 +18,9 @@ from components.reports_evaluation.features.evaluation.handlers import (
 from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
 )
+from components.reports_evaluation.features.results_table.handlers import (
+    frontend_cb_re_results_table,
+)
 from components.reports_evaluation.fsm_states import REAuthStates, REEvaluationStates
 
 router = Router()
@@ -125,3 +128,14 @@ async def st_re_eval_comment(
     Triggers menu showing 'continue' or 'edit' button after the comment.
     """
     await frontend_st_re_eval_comment(message, bot, state)
+
+
+# Results table
+@router.callback_query(F.data.startswith("cb_re_results_page:"))
+async def cb_re_results_table(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Triggers showing results table in reports evaluation.
+    """
+    await frontend_cb_re_results_table(callback_query, bot, state)

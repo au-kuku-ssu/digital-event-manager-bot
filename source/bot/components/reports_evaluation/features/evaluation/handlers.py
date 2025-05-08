@@ -16,7 +16,10 @@ from components.reports_evaluation.features.evaluation.keyboards import (
     re_get_comment_check_keyboard,
 )
 from components.reports_evaluation.fsm_states import REEvaluationStates
-from components.reports_evaluation.services.evaluation import re_submit_scores
+from components.reports_evaluation.services.evaluation import (
+    re_submit_scores,
+    re_finalize_score,
+)
 from components.reports_evaluation.utils import getstr, re_require_auth
 
 
@@ -141,8 +144,10 @@ async def frontend_re_eval_finalize_score(
     """
     lang = "ru"
 
+    await re_finalize_score(state)
+
     data = await state.get_data()
-    scores = dict(data.get("scores", {}))
+    scores = data.get("scores", {})
     pres_id = data.get("pres_id")
     print(f"[DEBUG] {scores}")
 
