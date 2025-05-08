@@ -6,6 +6,11 @@ from components.reports_evaluation.features.auth.handlers import (
     frontend_cb_re_auth,
     frontend_st_re_process_code,
 )
+from components.reports_evaluation.features.evaluation.edit_reports.handlers import (
+    frontend_cb_re_edit_results,
+    frontend_cb_re_edit_show_presentations,
+    frontend_cb_re_edit_select_jury,
+)
 from components.reports_evaluation.features.evaluation.handlers import (
     frontend_cb_re_show_presentations,
     frontend_cb_re_eval_choose_presentation,
@@ -139,3 +144,34 @@ async def cb_re_results_table(
     Triggers showing results table in reports evaluation.
     """
     await frontend_cb_re_results_table(callback_query, bot, state)
+
+
+# Edit results
+@router.callback_query(lambda c: c.data == "cb_re_edit_results")
+async def cb_re_edit_results(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Triggers showing jury selection menu.
+    """
+    await frontend_cb_re_edit_results(callback_query, bot, state)
+
+
+@router.callback_query(F.data.startswith("cb_re_edit_select_jury:"))
+async def cb_re_edit_select_jury(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Triggers showing continue button after selecting jury member to edit.
+    """
+    await frontend_cb_re_edit_select_jury(callback_query, bot, state)
+
+
+@router.callback_query(F.data.startswith("cb_re_edit_pres_page:"))
+async def cb_re_edit_change_pres_page(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Triggers showing presentation choose menu to edit.
+    """
+    await frontend_cb_re_edit_show_presentations(callback_query, bot, state)

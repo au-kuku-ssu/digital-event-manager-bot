@@ -25,7 +25,7 @@ async def frontend_cb_re_auth(
 
     await state.set_state(REAuthStates.waiting_for_code)
 
-    print(f"[DEBUG] {getstr(lang, 'reports_evaluation.auth.caption')}")
+    # print(f"[DEBUG] {getstr(lang, 'reports_evaluation.auth.caption')}")
 
     msg = await callback_query.message.edit_text(
         getstr(lang, "reports_evaluation.auth.caption")

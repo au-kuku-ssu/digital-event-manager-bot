@@ -19,7 +19,8 @@ def re_get_main_menu_keyboard(lang: str):
         callback_data="cb_re_results_page:0",
     )
     keyboard.button(
-        text=getstr(lang, "reports_evaluation.menu.edit"), callback_data="cb_mm_main"
+        text=getstr(lang, "reports_evaluation.menu.edit"),
+        callback_data="cb_re_edit_results",
     )
     keyboard.button(
         text=getstr(lang, "reports_evaluation.menu.back_to_main_menu"),

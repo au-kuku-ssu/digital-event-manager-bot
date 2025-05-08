@@ -37,15 +37,16 @@ async def re_submit_scores(state: FSMContext):
             final_score = 0
             num_jurors = len(pres["jury_scores"])
 
+            # Safe access to juror_score
             for juror_score in pres["jury_scores"].values():
-                total_final_scores += juror_score["final_score"]
+                total_final_scores += juror_score.get("final_score", 0)
 
             if num_jurors > 0:
                 final_score = total_final_scores / num_jurors
 
             pres["final_score"] = final_score
 
-            print(f"[DEBUG] Updated presentation: {pres}")
+            # print(f"[DEBUG] Updated presentation: {pres}")
             break
     else:
         print(f"[ERROR] Presentation {pres_id} not found")
@@ -78,4 +79,4 @@ async def re_finalize_score(state: FSMContext):
     )
     scores["final_score"] = total_score
     await state.update_data(scores=scores)
-    print(f"[INFO] Final score calculated and updated: {total_score}")
+    # print(f"[INFO] Final score calculated and updated: {total_score}")

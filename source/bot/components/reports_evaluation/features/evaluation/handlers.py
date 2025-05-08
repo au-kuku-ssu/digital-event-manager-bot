@@ -149,7 +149,7 @@ async def frontend_re_eval_finalize_score(
     data = await state.get_data()
     scores = data.get("scores", {})
     pres_id = data.get("pres_id")
-    print(f"[DEBUG] {scores}")
+    # print(f"[DEBUG] {scores}")
 
     # # Check if all criteria are in place
     # missing = [criterion for criterion in EVAL_CRITERIA if criterion not in scores]

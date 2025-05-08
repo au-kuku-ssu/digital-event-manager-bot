@@ -11,7 +11,7 @@ en:
       caption: "Welcome, <b>{jury_name}</b>.\nPlease choose an action:"
       evaluate: 📋 Evaluate Presentation
       results: 📊 View Results
-      edit: ⚙️ Edit Score (Chair) (WIP)
+      edit: ⚙️ Edit Score (Chair)
       back: ⬅️ Back to Menu
       back_to_main_menu: ⬅️ Back to Main Menu
     presents:
@@ -73,8 +73,14 @@ en:
       marks_continue: ➡️ Continue
     results_table:
       caption: 📊 Results table
-      header_hint: "📝 Marks: Organization; Content; Visuals; Mechanics; Delivery"
+      header_hint: "📝 Marks: Organization; Content; Visuals; Mechanics; Delivery; Final score"
       final_score: 🎯 Final score
       empty: ⬜ Results table is empty.
       back: ️⏪ Previous page
       forward: ⏩ Next page
+    edit_results:
+      caption: 🔵 Choose a jury member to edit results.
+      invalid_auth: ❌ You are not the chairman.
+      jury_selected: ✅ Jury member selected successfully!
+      error: ❌ Something went wrong...
+      continue: ➡️ Continue

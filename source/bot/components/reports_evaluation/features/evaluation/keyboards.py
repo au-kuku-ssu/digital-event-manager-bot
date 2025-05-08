@@ -9,19 +9,28 @@ from components.reports_evaluation.utils import getstr
 
 
 def re_get_presentations_keyboard(
-    lang: str, presentations: list, juror_code: str, page: int = 0, per_page: int = 5
+    lang: str,
+    presentations: list,
+    juror_code: str,
+    page: int = 0,
+    per_page: int = 5,
+    edit: bool = False,
 ):
     """
     Creates and returns the keyboard for presentations with navigation options.
     Displays only those presentations which haven't been rated by the reviewer (juror_code).
+
+    If in edit mode, shows all presentations.
     """
-    # Filter presentations
-    unreviewed_presentations = [
-        pres for pres in presentations if juror_code not in pres["jury_scores"]
-    ]
+    # Filter presentations only if not editing
+    filtered_presentations = (
+        [pres for pres in presentations if juror_code not in pres["jury_scores"]]
+        if not edit
+        else presentations
+    )
 
     # Return if none
-    if len(unreviewed_presentations) == 0:
+    if len(filtered_presentations) == 0:
         keyboard = InlineKeyboardBuilder()
         keyboard.button(
             text=getstr(lang, "reports_evaluation.menu.back"),
@@ -31,12 +40,12 @@ def re_get_presentations_keyboard(
         return None, keyboard.as_markup()
 
     keyboard = InlineKeyboardBuilder()
-    total_pages = (len(unreviewed_presentations) - 1) // per_page + 1
+    total_pages = (len(filtered_presentations) - 1) // per_page + 1
     page = max(0, min(page, total_pages - 1))
 
     start = page * per_page
     end = start + per_page
-    current_presentations = unreviewed_presentations[start:end]
+    current_presentations = filtered_presentations[start:end]
 
     caption_lines = []
     caption = f"{getstr(lang, 'reports_evaluation.presents.caption')}\n\n"
@@ -66,14 +75,18 @@ def re_get_presentations_keyboard(
         nav_buttons.append(
             types.InlineKeyboardButton(
                 text=getstr(lang, "reports_evaluation.presents.back"),
-                callback_data=f"cb_re_pres_page:{page - 1}",
+                callback_data=f"cb_re_pres_page:{page - 1}"
+                if not edit
+                else f"cb_re_edit_pres_page:{page - 1}",
             )
         )
-    if end < len(unreviewed_presentations):
+    if end < len(filtered_presentations):
         nav_buttons.append(
             types.InlineKeyboardButton(
                 text=getstr(lang, "reports_evaluation.presents.forward"),
-                callback_data=f"cb_re_pres_page:{page + 1}",
+                callback_data=f"cb_re_pres_page:{page + 1}"
+                if not edit
+                else f"cb_re_edit_pres_page:{page + 1}",
             )
         )
 
