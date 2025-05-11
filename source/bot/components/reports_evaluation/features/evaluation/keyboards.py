@@ -103,7 +103,9 @@ def re_get_presentations_keyboard(
     return caption, keyboard.as_markup()
 
 
-def re_get_criterion_keyboard(lang: str, criterion: str, score_range: int = 5):
+def re_get_criterion_keyboard(
+    lang: str, pres_id: str, criterion: str, score_range: int = 5
+):
     """
     Creates and returns the keyboard for a specific evaluation criterion.
     Includes score buttons from 0 to score_range - 1, and navigation buttons:
@@ -117,7 +119,7 @@ def re_get_criterion_keyboard(lang: str, criterion: str, score_range: int = 5):
     for i in range(score_range):
         keyboard.button(
             text=str(i),
-            callback_data=f"cb_re_score:{criterion}:{i}",
+            callback_data=f"cb_re_score:{pres_id}:{criterion}:{i}",
         )
     keyboard.adjust(score_range)
 
@@ -131,7 +133,7 @@ def re_get_criterion_keyboard(lang: str, criterion: str, score_range: int = 5):
             nav_buttons.append(
                 types.InlineKeyboardButton(
                     text=getstr(lang, "reports_evaluation.evaluation.return"),
-                    callback_data=f"cb_re_return_to_score:{previous_criterion}",
+                    callback_data=f"cb_re_return_to_score:{pres_id}:{previous_criterion}",
                 )
             )
     # Return to the main menu button
@@ -230,5 +232,18 @@ def re_get_comment_check_keyboard(lang: str, comment: str):
         callback_data="cb_re_eval_marks_accepted",
     )
     keyboard.adjust(1)
+
+    return caption, keyboard.as_markup()
+
+
+def re_get_error_keyboard(lang: str):
+    caption = getstr(lang, "reports_evaluation.evaluation.marks_declined")
+
+    keyboard = InlineKeyboardBuilder()
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.menu.back"),
+        callback_data="cb_re_main_menu",
+    )
 
     return caption, keyboard.as_markup()

@@ -72,11 +72,12 @@ async def re_finalize_score(state: FSMContext):
     ]
     if missing_criteria:
         print(f"[ERROR] Missing scores for criteria: {', '.join(missing_criteria)}")
-        return
+        return False
 
     total_score = sum(
         score for criteria, score in scores.items() if criteria in EVAL_CRITERIA
     )
     scores["final_score"] = total_score
     await state.update_data(scores=scores)
+    return True
     # print(f"[INFO] Final score calculated and updated: {total_score}")

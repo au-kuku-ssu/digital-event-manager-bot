@@ -14,6 +14,7 @@ from components.reports_evaluation.features.evaluation.keyboards import (
     re_get_comment_keyboard,
     re_get_marks_accepted_keyboard,
     re_get_comment_check_keyboard,
+    re_get_error_keyboard,
 )
 from components.reports_evaluation.fsm_states import REEvaluationStates
 from components.reports_evaluation.services.evaluation import (
@@ -65,8 +66,9 @@ async def frontend_cb_re_eval_choose_presentation(
     lang = "ru"
 
     pres_id = callback_query.data.split(":")[1]
+    # Set pres_id, scores to state data
     await state.update_data(pres_id=pres_id, scores={})
-    caption, keyboard = re_get_criterion_keyboard(lang, "organization")
+    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, "organization")
 
     await callback_query.message.edit_text(
         text=caption,
@@ -84,11 +86,24 @@ async def frontend_cb_re_eval_handle_score(
     """
     lang = "ru"
 
-    _, criterion, value = callback_query.data.split(":")
+    _, pres_id, criterion, value = callback_query.data.split(":")
     value = int(value)
 
     data = await state.get_data()
-    scores = dict(data.get("scores", {}))
+
+    # Check if pres_id from callback and state data are different
+    state_pres_id = data["pres_id"]
+    if pres_id != state_pres_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+
+        caption, keyboard = re_get_error_keyboard(lang)
+        await callback_query.message.edit_text(
+            text=caption,
+            reply_markup=keyboard,
+        )
+        return
+
+    scores = dict(data.get("scores") or {})
     scores[criterion] = value
     await state.update_data(scores=scores)
 
@@ -100,7 +115,7 @@ async def frontend_cb_re_eval_handle_score(
 
     # Show next criterion
     next_criterion = EVAL_CRITERIA[next_criterion_idx]
-    caption, keyboard = re_get_criterion_keyboard(lang, next_criterion)
+    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, next_criterion)
 
     await callback_query.message.edit_text(
         text=caption,
@@ -119,14 +134,27 @@ async def frontend_cb_re_eval_return_to_score(
     """
     lang = "ru"
 
-    criterion = callback_query.data.split(":")[1]
+    _, pres_id, criterion = callback_query.data.split(":")
 
     data = await state.get_data()
-    scores = dict(data.get("scores", {}))
+
+    # Check if pres_id from callback and state data are different
+    state_pres_id = data["pres_id"]
+    if pres_id != state_pres_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+
+        caption, keyboard = re_get_error_keyboard(lang)
+        await callback_query.message.edit_text(
+            text=caption,
+            reply_markup=keyboard,
+        )
+        return
+
+    scores = dict(data.get("scores") or {})
     scores[criterion] = ""
     await state.update_data(scores=scores)
 
-    caption, keyboard = re_get_criterion_keyboard(lang, criterion)
+    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, criterion)
 
     await callback_query.message.edit_text(
         text=caption,
@@ -144,21 +172,23 @@ async def frontend_re_eval_finalize_score(
     """
     lang = "ru"
 
-    await re_finalize_score(state)
+    # Check if there are problems with scores
+    is_scores_ok = await re_finalize_score(state)
+    if not is_scores_ok:
+        caption, keyboard = re_get_error_keyboard(lang)
+
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+
+        await callback_query.message.edit_text(
+            text=caption,
+            reply_markup=keyboard,
+        )
+        return
 
     data = await state.get_data()
     scores = data.get("scores", {})
     pres_id = data.get("pres_id")
     # print(f"[DEBUG] {scores}")
-
-    # # Check if all criteria are in place
-    # missing = [criterion for criterion in EVAL_CRITERIA if criterion not in scores]
-    # if missing:
-    #     await callback_query.answer(
-    #         text="Что-то пошло не так. Попробуйте снова.", show_alert=True
-    #     )
-    #     await frontend_cb_mm_main(callback_query, bot)
-    #     return
 
     caption, keyboard = re_get_final_score_keyboard(lang, scores, pres_id)
 
