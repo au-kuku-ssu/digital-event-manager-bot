@@ -24,8 +24,24 @@ def re_get_main_menu_keyboard(lang: str):
     )
     keyboard.button(
         text=getstr(lang, "reports_evaluation.menu.back_to_main_menu"),
-        callback_data="cb_mm_main",
+        callback_data="cb_re_return_to_main_menu",
     )
     keyboard.adjust(1)
 
     return keyboard.as_markup()
+
+
+def re_get_return_to_main_menu_keyboard(lang: str):
+    """
+    Creates and returns caption and keyboard for returning to main menu.
+    """
+    caption = getstr(lang, "reports_evaluation.menu.back_to_main_menu_caption")
+
+    keyboard = InlineKeyboardBuilder()
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.menu.back"),
+        callback_data="cb_mm_main",
+    )
+
+    return caption, keyboard.as_markup()

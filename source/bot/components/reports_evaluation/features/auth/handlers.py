@@ -4,12 +4,14 @@ from aiogram.fsm.context import FSMContext
 
 from components.reports_evaluation.features.auth.keyboards import (
     re_get_auth_continue_keyboard,
+    re_get_auth_main_menu_keyboard,
 )
 from components.reports_evaluation.fsm_states import REAuthStates
 from components.reports_evaluation.utils import (
     re_add_auth_message,
     re_check_access_code,
     getstr,
+    re_delete_auth_messages,
 )
 
 
@@ -19,7 +21,6 @@ async def frontend_cb_re_auth(
     """
     Shows user prompt for entering access code.
     """
-    # TODO: Add reply button to return to main_menu
     await state.clear()
     lang = "ru"
 
@@ -51,8 +52,8 @@ async def frontend_st_re_process_code(
     juror = await re_check_access_code(code)
 
     if juror:
-        await state.update_data(auth_code=code)
         await state.set_state(REAuthStates.authorized)
+        await state.update_data(auth_code=code, auth_attempts=0)
 
         caption, keyboard = re_get_auth_continue_keyboard(lang)
 
@@ -61,6 +62,24 @@ async def frontend_st_re_process_code(
             reply_markup=keyboard,
         )
     else:
+        # Increase auth_attempts count
+        data = await state.get_data()
+        attempts = data.get("auth_attempts", 0) + 1
+        await state.update_data(auth_attempts=attempts)
+
         # Save invalid code message for deletion
         msg = await message.answer(getstr(lang, "reports_evaluation.auth.invalid_code"))
         await re_add_auth_message(state, msg.message_id)
+
+        # Check if the number of attempts more than 3
+        if attempts >= 3:
+            await re_delete_auth_messages(state, message.chat.id, bot)
+
+            await state.clear()
+
+            caption, keyboard = re_get_auth_main_menu_keyboard(lang)
+
+            await message.answer(
+                text=caption,
+                reply_markup=keyboard,
+            )

@@ -7,6 +7,7 @@ en:
       continue_caption: |
         ✅ You have been successfully authorized. Click the button to continue.
       continue: ➡️ Continue
+      too_many_attempts: ❌ Too many attempts. Press the button to return to the main menu.
     menu:
       caption: "Welcome, <b>{jury_name}</b>.\nPlease choose an action:"
       evaluate: 📋 Evaluate Presentation
@@ -14,6 +15,7 @@ en:
       edit: ⚙️ Edit Score (Chair)
       back: ⬅️ Back to Menu
       back_to_main_menu: ⬅️ Back to Main Menu
+      back_to_main_menu_caption: 🔵 Press the button to return to main menu.
     presents:
       caption: 🔵 Click the button with the presentation number to evaluate it.
       no_presents_available: |

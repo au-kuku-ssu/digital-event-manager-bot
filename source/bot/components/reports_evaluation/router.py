@@ -22,6 +22,7 @@ from components.reports_evaluation.features.evaluation.handlers import (
 )
 from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
+    frontend_cb_re_return_to_main_menu,
 )
 from components.reports_evaluation.features.results_table.handlers import (
     frontend_cb_re_results_table,
@@ -61,6 +62,13 @@ async def cb_re_show_main_menu(
     Triggers reports evaluation main menu. May trigger after successful authentication or be called in features.
     """
     await frontend_cb_re_main_menu(callback_query, bot, state)
+
+
+@router.callback_query(lambda c: c.data == "cb_re_return_to_main_menu")
+async def cb_re_return_to_mm_main_menu(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await frontend_cb_re_return_to_main_menu(callback_query, bot, state)
 
 
 # Presents

@@ -5,6 +5,7 @@ from aiogram.types import CallbackQuery
 from components.reports_evaluation.data.placeholder_jury import PLACEHOLDER_JURY
 from components.reports_evaluation.features.main_menu.keyboards import (
     re_get_main_menu_keyboard,
+    re_get_return_to_main_menu_keyboard,
 )
 from components.reports_evaluation.utils import (
     re_require_auth,
@@ -37,5 +38,22 @@ async def frontend_cb_re_main_menu(
     keyboard = re_get_main_menu_keyboard(lang)
     await callback_query.message.edit_text(
         getstr(lang, "reports_evaluation.menu.caption").format(jury_name=jury_name),
+        reply_markup=keyboard,
+    )
+
+
+async def frontend_cb_re_return_to_main_menu(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    """
+    Handles returning to main menu. Exists because state data must be reset.
+    """
+    lang = "ru"
+    await state.clear()
+
+    caption, keyboard = re_get_return_to_main_menu_keyboard(lang)
+
+    await callback_query.message.edit_text(
+        text=caption,
         reply_markup=keyboard,
     )

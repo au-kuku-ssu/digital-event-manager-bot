@@ -16,3 +16,19 @@ def re_get_auth_continue_keyboard(lang: str):
     )
 
     return caption, keyboard.as_markup()
+
+
+def re_get_auth_main_menu_keyboard(lang: str):
+    """
+    Creates and returns the caption and keyboard for returning to main menu.
+    """
+    caption = getstr(lang, "reports_evaluation.auth.too_many_attempts")
+
+    keyboard = InlineKeyboardBuilder()
+
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.menu.back_to_main_menu"),
+        callback_data="cb_mm_main",
+    )
+
+    return caption, keyboard.as_markup()
