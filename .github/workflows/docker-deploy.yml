@@ -1,5 +1,9 @@
 name: Deploy Docker
-on: workflow_dispatch
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - '*'
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -8,6 +12,7 @@ jobs:
     - run: |
         umask 0177
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+        echo "${{ secrets.SSH_CONF }}" > ~/.ssh/config
         ssh-keyscan -H "${{ secrets.SSH_HOST }}" > ~/.ssh/known_hosts
         docker context create deploy --docker host="ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
     - env:
