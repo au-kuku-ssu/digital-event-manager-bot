@@ -1,13 +1,23 @@
 name: Docker Image CI
-on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
+on: [ push ]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build source --file source/Dockerfile --tag digital-event-manager-bot:$(date +%s)
+    - uses: docker/login-action@v3
+      with:
+       registry: ghcr.io
+       username: ${{ github.actor }}
+       password: ${{ secrets.GITHUB_TOKEN }}
+    - uses: docker/metadata-action@v5
+      id: meta
+      with:
+        images: digital-event-manager-bot
+    - name: Build and push the Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: source/
+        push: true
+	tags: ${{ steps.meta.outputs.tags }}
+	labels: ${{ steps.meta.outputs.labels }}
