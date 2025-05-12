@@ -12,5 +12,6 @@ jobs:
         docker context create deploy --docker host="ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
     - env:
         TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN_DEPLOY }}
+        IMAGE_REF: ${{ steps.meta.outputs.tags }}
       run: docker-compose --context deploy -f source/docker-compose.deploy.yml up -d
     - run: rm -rf ~/.ssh
