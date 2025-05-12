@@ -13,7 +13,7 @@ jobs:
     - uses: docker/metadata-action@v5
       id: meta
       with:
-        images: digital-event-manager-bot
+        images: ghcr.io/${{ github.repository }}
     - name: Build and push the Docker image
       uses: docker/build-push-action@v6
       with:
