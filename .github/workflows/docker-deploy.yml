@@ -1,0 +1,16 @@
+name: Deploy Docker
+on: workflow_dispatch
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        umask 0177
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+        ssh-keyscan -H "${{ secrets.SSH_HOST }}" > ~/.ssh/known_hosts
+        docker context create deploy --docker host="ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+    - env:
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN_DEPLOY }}
+      run: docker-compose --context deploy -f source/docker-compose.deploy.yml up -d
+    - run: rm -rf ~/.ssh
