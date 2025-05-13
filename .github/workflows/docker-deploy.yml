@@ -3,7 +3,7 @@ on:
   workflow_dispatch: {}
   push:
     branches:
-      - '*'
+      - 'team-4/reports_cicd'
 jobs:
   deploy:
     runs-on: ubuntu-latest
