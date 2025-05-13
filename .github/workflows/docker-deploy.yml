@@ -10,7 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-        umask 0177
+        umask 0077
+        mkdir ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
         echo "${{ secrets.SSH_CONF }}" > ~/.ssh/config
         ssh-keyscan -H "${{ secrets.SSH_HOST }}" > ~/.ssh/known_hosts
