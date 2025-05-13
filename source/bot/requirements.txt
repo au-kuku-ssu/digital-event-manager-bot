@@ -1,0 +1,5 @@
+prometheus-client
+aiogram>=3.0
+python-dotenv
+PyYAML
+python-logging-loki
