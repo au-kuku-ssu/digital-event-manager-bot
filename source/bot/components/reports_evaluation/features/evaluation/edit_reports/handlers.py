@@ -13,11 +13,9 @@ from components.reports_evaluation.features.evaluation.edit_reports.keyboards im
 )
 from components.reports_evaluation.features.evaluation.keyboards import (
     re_get_presentations_keyboard,
+    re_get_error_keyboard,
 )
 from components.reports_evaluation.utils import getstr, re_require_auth
-
-# TODO: Add auth check if chairman to all these functions
-# TODO: Parallel execution with evaluation, edit_reports themselves should be tested
 
 
 @re_require_auth
@@ -40,9 +38,15 @@ async def frontend_cb_re_edit_results(
     # Check if chair
     is_chairman = PLACEHOLDER_JURY.get(auth_code, {}).get("role") == "chair"
 
-    caption, keyboard = re_get_edit_results_keyboard(
-        lang, PLACEHOLDER_JURY, is_chairman
-    )
+    if not is_chairman:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "not chairman")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    caption, keyboard = re_get_edit_results_keyboard(lang, PLACEHOLDER_JURY)
 
     await callback_query.message.edit_text(text=caption, reply_markup=keyboard)
 
@@ -59,6 +63,8 @@ async def frontend_cb_re_edit_select_jury(
     with editing the selected jury’s evaluation results. If the jury_code is invalid, shows an error.
     """
     lang = "ru"
+
+    # TODO: Check hashed jury code with jury code in db
 
     jury_code = callback_query.data.split(":")[1]
     wrong_code = False
@@ -91,6 +97,7 @@ async def frontend_cb_re_edit_show_presentations(
 
     data = await state.get_data()
     jury_code = data["jury_code"]
+
     # print(f"[DEBUG] {data}")
 
     # Fetch the presentations and generate the keyboard with the appropriate page

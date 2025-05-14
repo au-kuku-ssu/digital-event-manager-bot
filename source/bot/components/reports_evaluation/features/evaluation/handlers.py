@@ -37,6 +37,14 @@ async def frontend_cb_re_show_presentations(
     data = await state.get_data()
     jury_code = data["jury_code"]
 
+    if not jury_code:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no jury code")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
     # Fetch the presentations and generate the keyboard with the appropriate page
     caption, keyboard = re_get_presentations_keyboard(
         lang, PLACEHOLDER_PRESENTS, jury_code, page
@@ -65,10 +73,38 @@ async def frontend_cb_re_eval_choose_presentation(
     """
     lang = "ru"
 
-    pres_id = callback_query.data.split(":")[1]
-    # Set pres_id, scores to state data
-    await state.update_data(pres_id=pres_id, scores={})
-    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, "organization")
+    pres_id_from_callback = callback_query.data.split(":")[1]
+    # Set pres_id, scores, pres_comments to state data
+
+    data = await state.get_data()
+    existing_pres_id = data.get("pres_id")
+
+    if existing_pres_id:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "parallel scoring")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    await state.update_data(
+        pres_id=pres_id_from_callback, scores={}, pres_comments=None
+    )
+
+    first_criterion = EVAL_CRITERIA[0] if EVAL_CRITERIA else None
+    if not first_criterion:
+        caption_err, keyboard_err = re_get_error_keyboard(
+            lang, "no criterion available"
+        )
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    caption, keyboard = re_get_criterion_keyboard(
+        lang, pres_id_from_callback, "organization"
+    )
 
     await callback_query.message.edit_text(
         text=caption,
@@ -86,20 +122,18 @@ async def frontend_cb_re_eval_handle_score(
     """
     lang = "ru"
 
-    _, pres_id, criterion, value = callback_query.data.split(":")
+    _, criterion, value = callback_query.data.split(":")
     value = int(value)
 
     data = await state.get_data()
+    current_pres_id = data.get("pres_id")
 
-    # Check if pres_id from callback and state data are different
-    state_pres_id = data["pres_id"]
-    if pres_id != state_pres_id:
+    if not current_pres_id:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
-
-        caption, keyboard = re_get_error_keyboard(lang)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id")
         await callback_query.message.edit_text(
-            text=caption,
-            reply_markup=keyboard,
+            text=caption_err,
+            reply_markup=keyboard_err,
         )
         return
 
@@ -107,20 +141,26 @@ async def frontend_cb_re_eval_handle_score(
     scores[criterion] = value
     await state.update_data(scores=scores)
 
-    # Check if the current criterion is the last one
-    next_criterion_idx = EVAL_CRITERIA.index(criterion) + 1
+    try:
+        current_criterion_idx = EVAL_CRITERIA.index(criterion)
+    except ValueError:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid criterion")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    next_criterion_idx = current_criterion_idx + 1
     if next_criterion_idx >= len(EVAL_CRITERIA):
         await frontend_re_eval_finalize_score(callback_query, bot, state)
         return
 
-    # Show next criterion
     next_criterion = EVAL_CRITERIA[next_criterion_idx]
-    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, next_criterion)
-
+    caption, keyboard = re_get_criterion_keyboard(lang, current_pres_id, next_criterion)
     await callback_query.message.edit_text(
         text=caption,
         reply_markup=keyboard,
-        parse_mode="HTML",
     )
 
 
@@ -134,32 +174,37 @@ async def frontend_cb_re_eval_return_to_score(
     """
     lang = "ru"
 
-    _, pres_id, criterion = callback_query.data.split(":")
+    _, criterion = callback_query.data.split(":")
 
     data = await state.get_data()
+    current_pres_id = data.get("pres_id")
 
-    # Check if pres_id from callback and state data are different
-    state_pres_id = data["pres_id"]
-    if pres_id != state_pres_id:
+    if not current_pres_id:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
-
-        caption, keyboard = re_get_error_keyboard(lang)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id")
         await callback_query.message.edit_text(
-            text=caption,
-            reply_markup=keyboard,
+            text=caption_err,
+            reply_markup=keyboard_err,
         )
         return
 
+    if criterion not in EVAL_CRITERIA:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid criterion")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    # Nullify score
     scores = dict(data.get("scores") or {})
-    scores[criterion] = ""
+    scores.pop(criterion, None)
     await state.update_data(scores=scores)
 
-    caption, keyboard = re_get_criterion_keyboard(lang, pres_id, criterion)
-
+    caption, keyboard = re_get_criterion_keyboard(lang, current_pres_id, criterion)
     await callback_query.message.edit_text(
         text=caption,
         reply_markup=keyboard,
-        parse_mode="HTML",
     )
 
 
@@ -179,16 +224,16 @@ async def frontend_re_eval_finalize_score(
 
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
 
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "missing criteria")
         await callback_query.message.edit_text(
-            text=caption,
-            reply_markup=keyboard,
+            text=caption_err,
+            reply_markup=keyboard_err,
         )
         return
 
     data = await state.get_data()
     scores = data.get("scores", {})
     pres_id = data.get("pres_id")
-    # print(f"[DEBUG] {scores}")
 
     caption, keyboard = re_get_final_score_keyboard(lang, scores, pres_id)
 
@@ -209,8 +254,20 @@ async def frontend_cb_re_eval_comment(
     """
     lang = "ru"
 
+    data = await state.get_data()
+    if not data.get("pres_id") or data.get("scores") is None:
+        caption_err, keyboard_err = re_get_error_keyboard(
+            lang, "missing pres_id or scores"
+        )
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    # Set state for comment waiting
     await state.set_state(REEvaluationStates.waiting_for_comment)
-    await state.update_data(pres_comments=None)
+    # await state.update_data(pres_comments=None)
 
     caption, keyboard = re_get_comment_keyboard(lang)
 
@@ -229,8 +286,13 @@ async def frontend_st_re_eval_comment(
     """
     lang = "ru"
 
+    # Unnecessary?
+    # current_state = await state.get_state()
+    # if not current_state != REEvaluationStates.waiting_for_comment:
+    #   return
+
     comment = message.text.strip()
-    await state.set_state(REEvaluationStates.comment_added)
+    await state.set_state(None)
     await state.update_data(pres_comments=comment)
 
     caption, keyboard = re_get_comment_check_keyboard(lang, comment)
@@ -251,8 +313,24 @@ async def frontend_cb_re_eval_marks_accepted(
     """
     lang = "ru"
 
+    data = await state.get_data()
+    if not data.get("pres_id") or data.get("scores") is None:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no pres id or scores")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
     await state.set_state(REEvaluationStates.marks_accepted)
     marks_state = await re_submit_scores(state)
+
+    if not marks_state:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "missing data")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
 
     caption, keyboard = re_get_marks_accepted_keyboard(lang, marks_state)
 
@@ -260,3 +338,12 @@ async def frontend_cb_re_eval_marks_accepted(
         text=caption,
         reply_markup=keyboard,
     )
+    return
+
+
+@re_require_auth
+async def frontend_cb_re_eval_back_to_summary(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await state.set_state(None)
+    await frontend_re_eval_finalize_score(callback_query, bot, state)

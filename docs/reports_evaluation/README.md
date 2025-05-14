@@ -19,7 +19,7 @@ A list of known issues, tech debt, and upcoming improvements:
   Right now we're working with placeholders. Need to switch to a real database and bind data logic to it.
 
 - **Insecure presentation scoring implementation.**
-  Currently, the evaluation of presentations and editing of scores is done through passing the `pres_id` in the callback data, which is not secure.
+  Currently, the editing of scores is done through passing the `jury_code` in the callback data, which is not secure. Hashed version must be used.
   It would be better to avoid passing sensitive information like this directly and instead use a more secure method of handling such data, like using a database or encrypted session tokens.
 
 - **Write proper tests.**
@@ -82,15 +82,15 @@ Users must first **authorize** themselves to access any evaluation features.
 
 ## 🧑‍⚖️ Report Evaluation Flow
 
-| Step                | Trigger                                       | Handler Function                          |
-|---------------------|-----------------------------------------------|--------------------------------------------|
-| View presentations  | `cb_re_pres_page:{pres_page}`                 | `frontend_cb_re_show_presentations`        |
-| Select report       | `cb_re_choose_pres:{pres_id}`                 | `frontend_cb_re_eval_choose_presentation`  |
-| Score report        | `cb_re_score:{pres_id}:{criterion}:{score}`   | `frontend_cb_re_eval_handle_score`         |
-| Go back in scoring  | `cb_re_return_to_score:{pres_id}:{criterion}` | `frontend_cb_re_eval_return_to_score`      |
-| Add comment         | `cb_re_eval_comment`                          | `frontend_cb_re_eval_comment`              |
-| Comment message     | (message input)                               | `st_re_eval_comment`                       |
-| Confirm submission  | `cb_re_eval_marks_accepted`                   | `frontend_cb_re_eval_marks_accepted`    |
+| Step                | Trigger                                   | Handler Function                          |
+|---------------------|-------------------------------------------|--------------------------------------------|
+| View presentations  | `cb_re_pres_page:{pres_page}`             | `frontend_cb_re_show_presentations`        |
+| Select report       | `cb_re_choose_pres:{pres_id}`             | `frontend_cb_re_eval_choose_presentation`  |
+| Score report        | `cb_re_score:{criterion}:{score}`   | `frontend_cb_re_eval_handle_score`         |
+| Go back in scoring  | `cb_re_return_to_score:{criterion}` | `frontend_cb_re_eval_return_to_score`      |
+| Add comment         | `cb_re_eval_comment`                      | `frontend_cb_re_eval_comment`              |
+| Comment message     | (message input)                           | `st_re_eval_comment`                       |
+| Confirm submission  | `cb_re_eval_marks_accepted`               | `frontend_cb_re_eval_marks_accepted`    |
 
 ---
 

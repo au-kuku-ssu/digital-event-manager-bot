@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from components.reports_evaluation.utils import getstr
 
 
-def re_get_edit_results_keyboard(lang: str, jury: dict, is_chairman: bool):
+def re_get_edit_results_keyboard(lang: str, jury: dict):
     """
     Generates a keyboard for the chairman to select a jury member for result editing.
 
@@ -11,21 +11,16 @@ def re_get_edit_results_keyboard(lang: str, jury: dict, is_chairman: bool):
     is added to the keyboard. Each button leads to selection of a specific jury via callback.
     Also includes a 'Back to main menu' button. If not a chairman, returns a restricted access caption.
     """
-    # TODO: NOT SAFE, callbacks can be faked
-    caption = (
-        getstr(lang, "reports_evaluation.edit_results.caption")
-        if is_chairman
-        else getstr(lang, "reports_evaluation.edit_results.invalid_auth")
-    )
+    # TODO: Instead of jury_code hashed version should be used
+    caption = getstr(lang, "reports_evaluation.edit_results.caption")
 
     keyboard = InlineKeyboardBuilder()
 
-    if is_chairman:
-        for jury_code, jury_info in jury.items():
-            name = jury_info.get("name", "Unnamed")
-            callback_data = f"cb_re_edit_select_jury:{jury_code}"
-            keyboard.button(text=name, callback_data=callback_data)
-        keyboard.adjust(1)
+    for jury_code, jury_info in jury.items():
+        name = jury_info.get("name", "Unnamed")
+        callback_data = f"cb_re_edit_select_jury:{jury_code}"
+        keyboard.button(text=name, callback_data=callback_data)
+    keyboard.adjust(1)
 
     keyboard.button(
         text=getstr(lang, "reports_evaluation.menu.back"),

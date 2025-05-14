@@ -27,40 +27,41 @@ en:
       description: 📝 <b>Description:</b>
     evaluation:
       return: ⏪ Return
-      organization: |
-          🧩 <b>Evaluation: Organization</b>
-          How logical and coherent is the presentation.
-          This includes structure, flow, and integrity of the presented material.
+      crit_descriptions:
+        organization: |
+            🧩 <b>Evaluation: Organization</b>
+            How logical and coherent is the presentation.
+            This includes structure, flow, and integrity of the presented material.
 
-          📝 Please select a score from 0 to 4.
-      content: |
-          📚 <b>Evaluation: Content</b>
-          The depth of understanding of the topic and the completeness of the key aspects covered.
+            📝 Please select a score from 0 to 4.
+        content: |
+            📚 <b>Evaluation: Content</b>
+            The depth of understanding of the topic and the completeness of the key aspects covered.
 
-          📝 Please select a score from 0 to 4.
-      visuals: |
-          🎨 <b>Evaluation: Visuals</b>
-          How well the presentation matches the theme, includes key points, is concise, and avoids text overload.
+            📝 Please select a score from 0 to 4.
+        visuals: |
+            🎨 <b>Evaluation: Visuals</b>
+            How well the presentation matches the theme, includes key points, is concise, and avoids text overload.
 
-          📝 Please select a score from 0 to 4.
-      mechanics: |
-          ✍️ <b>Evaluation: Mechanics</b>
-          Grammar correctness, clarity of phrasing, and pronunciation.
+            📝 Please select a score from 0 to 4.
+        mechanics: |
+            ✍️ <b>Evaluation: Mechanics</b>
+            Grammar correctness, clarity of phrasing, and pronunciation.
 
-          📝 Please select a score from 0 to 4.
-      delivery: |
-          🎤 <b>Evaluation: Delivery</b>
-          Confidence, expressiveness, audience engagement, and involvement of the speaker.
+            📝 Please select a score from 0 to 4.
+        delivery: |
+            🎤 <b>Evaluation: Delivery</b>
+            Confidence, expressiveness, audience engagement, and involvement of the speaker.
 
-          📝 Please select a score from 0 to 4.
-      final_score: |
-          ✅ <b>Final Check</b>
-          Make sure all criteria are evaluated. After confirmation, the scores will be saved.
-      comment: |
-          💬 <b>Comment on the Score</b>
-          Here you can leave additional notes or explanations regarding the scores you have given.
+            📝 Please select a score from 0 to 4.
+        final_score: |
+            ✅ <b>Final Check</b>
+            Make sure all criteria are evaluated. After confirmation, the scores will be saved.
+        comment: |
+            💬 <b>Comment on the Score</b>
+            Here you can leave additional notes or explanations regarding the scores you have given.
 
-          🔵 If you have no comments, click the button.
+            🔵 If you have no comments, click the button.
       skip_comments: ⏭️ Skip
       comment_check_caption: |
         ❗ Please review your comment.
@@ -71,8 +72,9 @@ en:
       decline: ❌ Re-enter Scores
       accept: ✅ Confirm Scores
       marks_accepted: ✅ Scores have been successfully submitted! Press the button to continue.
-      marks_declined: ❌ Something went wrong...
       marks_continue: ➡️ Continue
+      error: ❌ Something went wrong...
+      back_to_summary: ⬅️ Back to summary
     results_table:
       caption: 📊 Results table
       header_hint: "📝 Marks: Organization; Content; Visuals; Mechanics; Delivery; Final score"

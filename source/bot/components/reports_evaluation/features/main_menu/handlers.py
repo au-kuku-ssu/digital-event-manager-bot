@@ -31,7 +31,9 @@ async def frontend_cb_re_main_menu(
     auth_code = state_data.get("auth_code")
 
     # Update jury_code to auth_code
-    await state.update_data(jury_code=auth_code)
+    await state.update_data(
+        jury_code=auth_code, pres_id=None, scores=None, pres_comments=None
+    )
 
     jury_name = PLACEHOLDER_JURY[auth_code]["name"]
 

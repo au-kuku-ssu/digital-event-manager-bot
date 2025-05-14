@@ -19,6 +19,7 @@ from components.reports_evaluation.features.evaluation.handlers import (
     frontend_cb_re_eval_comment,
     frontend_st_re_eval_comment,
     frontend_cb_re_eval_marks_accepted,
+    frontend_cb_re_eval_back_to_summary,
 )
 from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
@@ -141,6 +142,13 @@ async def st_re_eval_comment(
     Triggers menu showing 'continue' or 'edit' button after the comment.
     """
     await frontend_st_re_eval_comment(message, bot, state)
+
+
+@router.callback_query(lambda c: c.data == "cb_re_eval_back_to_summary")
+async def cb_re_eval_back_to_summary(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await frontend_cb_re_eval_back_to_summary(callback_query, bot, state)
 
 
 # Results table

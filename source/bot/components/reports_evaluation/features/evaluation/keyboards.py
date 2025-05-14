@@ -112,14 +112,16 @@ def re_get_criterion_keyboard(
     - 'Return' to the previous criterion (if available)
     - 'Back' to return to the main menu
     """
-    caption = getstr(lang, f"reports_evaluation.evaluation.{criterion}")
+    caption = getstr(
+        lang, f"reports_evaluation.evaluation.crit_descriptions.{criterion}"
+    )
     keyboard = InlineKeyboardBuilder()
 
     # Build score buttons
     for i in range(score_range):
         keyboard.button(
             text=str(i),
-            callback_data=f"cb_re_score:{pres_id}:{criterion}:{i}",
+            callback_data=f"cb_re_score:{criterion}:{i}",
         )
     keyboard.adjust(score_range)
 
@@ -133,7 +135,7 @@ def re_get_criterion_keyboard(
             nav_buttons.append(
                 types.InlineKeyboardButton(
                     text=getstr(lang, "reports_evaluation.evaluation.return"),
-                    callback_data=f"cb_re_return_to_score:{pres_id}:{previous_criterion}",
+                    callback_data=f"cb_re_return_to_score:{previous_criterion}",
                 )
             )
     # Return to the main menu button
@@ -153,12 +155,15 @@ def re_get_final_score_keyboard(lang: str, scores: dict[str, int], pres_id: str)
     Builds and returns the final confirmation keyboard after all criteria are scored.
     Displays a summary of all criterion scores and offers 'Accept' or 'Decline' options.
     """
-    caption = getstr(lang, "reports_evaluation.evaluation.final_score") + "\n"
+    caption = (
+        getstr(lang, "reports_evaluation.evaluation.crit_descriptions.final_score")
+        + "\n"
+    )
 
-    lines = [
-        f"<b>{criterion.capitalize()}:</b> {scores.get(criterion, '-')}"
-        for criterion in scores
-    ]
+    lines = []
+    for crit_key in EVAL_CRITERIA:
+        lines.append(f"<b>{crit_key.capitalize()}:</b> {scores.get(crit_key, '-')}")
+
     caption += "\n".join(lines)
 
     keyboard = InlineKeyboardBuilder()
@@ -172,6 +177,12 @@ def re_get_final_score_keyboard(lang: str, scores: dict[str, int], pres_id: str)
     )
     keyboard.adjust(1)
 
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.menu.back"),
+        callback_data="cb_re_main_menu",
+    )
+    keyboard.adjust(1)
+
     return caption, keyboard.as_markup()
 
 
@@ -180,12 +191,16 @@ def re_get_comment_keyboard(lang: str):
     Generates the keyboard for the optional commentary step.
     Includes a button to skip writing comments and proceed with submission.
     """
-    caption = getstr(lang, "reports_evaluation.evaluation.comment")
+    caption = getstr(lang, "reports_evaluation.evaluation.crit_descriptions.comment")
 
     keyboard = InlineKeyboardBuilder()
     keyboard.button(
         text=getstr(lang, "reports_evaluation.evaluation.skip_comments"),
         callback_data="cb_re_eval_marks_accepted",
+    )
+    keyboard.button(
+        text=getstr(lang, "reports_evaluation.evaluation.back_to_summary"),
+        callback_data="cb_re_eval_back_to_summary",
     )
     keyboard.adjust(1)
 
@@ -200,7 +215,7 @@ def re_get_marks_accepted_keyboard(lang: str, marks_state: bool):
         lang,
         "reports_evaluation.evaluation.marks_accepted"
         if marks_state
-        else "reports_evaluation.evaluation.marks_declined",
+        else "reports_evaluation.evaluation.error",
     )
 
     keyboard = InlineKeyboardBuilder()
@@ -236,8 +251,14 @@ def re_get_comment_check_keyboard(lang: str, comment: str):
     return caption, keyboard.as_markup()
 
 
-def re_get_error_keyboard(lang: str):
-    caption = getstr(lang, "reports_evaluation.evaluation.marks_declined")
+def re_get_error_keyboard(lang: str, error_type: str = "generic error"):
+    """
+    Generates a generic error keyboard.
+    error_type can be used for more specific error messages.
+    """
+    caption = getstr(lang, "reports_evaluation.evaluation.error")
+
+    caption += "\n" + f"ОШИБКА: {error_type}"
 
     keyboard = InlineKeyboardBuilder()
 
