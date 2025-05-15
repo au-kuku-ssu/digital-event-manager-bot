@@ -3,3 +3,7 @@
 __pycache__
 
 *.swp
+test.py
+test2.py
+ex.py
+.gitignore
