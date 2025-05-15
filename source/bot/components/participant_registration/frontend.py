@@ -18,14 +18,15 @@ async def pr_cb_pre_main(callback_query: types.CallbackQuery, bot: Bot) -> None:
 
 async def pr_cb_user_main(callback_query: types.CallbackQuery, bot: Bot) -> None:
   lang = "ru"
-  prefix = "user_registration.user.main"
+  prefix = "participant_registration.user.main"
+  shared = "participant_registration.shared"
 
   keyboard = InlineKeyboardBuilder()
   keyboard.button(text=getstr(lang, prefix, "browse"), callback_data="pr_cb_user_register")
   keyboard.button(text=getstr(lang, prefix, "search"), callback_data="pr_cb_user_show")
   keyboard.button(text=getstr(lang, prefix, "my_activities"), callback_data="pr_cb_user_activities")
   keyboard.button(text=getstr(lang, prefix, "my_data"), callback_data="pr_cb_user_activities")
-  keyboard.button(text=getstr(lang, prefix, "back"), callback_data="cb_mm_main")
+  keyboard.button(text=getstr(lang, shared, "back"), callback_data="cb_mm_main")
 
   keyboard.adjust(1)
 
