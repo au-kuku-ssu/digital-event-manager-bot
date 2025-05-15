@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from os.path import join, dirname
 from components.shared.locale import load_locales, get_locale_str
 
-locale = load_locales(join(dirname(__file__), "..", "locale"))
+locale = load_locales(join(dirname(__file__), "locale"))
 getstr = lambda lang, prefix, path: get_locale_str(locale, f"{lang}.{prefix}.{path}")
 
 async def pr_cb_pre_main(callback_query: types.CallbackQuery, bot: Bot) -> None:
