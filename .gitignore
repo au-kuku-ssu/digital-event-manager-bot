@@ -3,3 +3,5 @@
 __pycache__
 
 *.swp
+
+source/bot/database/instance/*.db

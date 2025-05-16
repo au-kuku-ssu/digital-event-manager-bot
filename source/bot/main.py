@@ -16,6 +16,9 @@ import components.participant_registration.router as participant_registration
 import components.program_generator.router as program_generator
 import components.reports_evaluation.router as reports_evaluation
 
+from components.shared.db import Database
+from middlewares.db import DatabaseMiddleware
+
 
 async def main() -> None:
     """
@@ -34,11 +37,17 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     load_dotenv(dotenv_dir)
 
+    db_path = join(dirname(__file__), "database", "instance", "digital_event_manager.db")
+    db = Database(db_path).connect()
+
     bot = Bot(
         token=os.environ.get("TG_BOT_TOKEN"),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()
+
+    dp.message.middleware(DatabaseMiddleware(db))
+    dp.callback_query.middleware(DatabaseMiddleware(db))
 
     dp.include_routers(*component_routers)
 
