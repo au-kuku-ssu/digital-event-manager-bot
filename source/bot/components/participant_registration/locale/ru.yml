@@ -41,13 +41,13 @@ ru:
         participant:
           button: Участник
           form:
-            section:
-            theme:
-            faculty:
-            course:
-            advisor:
-            english_level:
-            is_translator:
+            section: Выберите секцию, на которую хотите пойти
+            theme: Выберите тему конференции
+            faculty: Выберите факультет
+            course: Выберите курс
+            advisor: Выберите преподавателя по английскому
+            english_level: Выберите ваш уровень английского
+            is_translator: Вы переводчик?
             success:
               caption: |
                 Вы успешно зарегистрированы!
@@ -57,9 +57,9 @@ ru:
             group:
               caption: Введите название группы
               error: Такое название группы уже занято. Введите другое название группы
-            section:
-            theme:
-            amount:
+            section: Выберите секцию, на которую хотите пойти
+            theme: Выберите тему конференции
+            amount: Amount ?
             success:
               caption: |
                 Вы успешно зарегистрированы!

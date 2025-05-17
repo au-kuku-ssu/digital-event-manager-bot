@@ -42,4 +42,6 @@ def load_locales(path):
     return merged_data
 
 def get_locale_str(dictionary, keys, default=None):
-  return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
+  res = reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
+  print(f"[DEBUG]: {keys}: [{res}]")
+  return res
