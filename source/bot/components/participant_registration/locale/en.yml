@@ -1,6 +1,71 @@
 en:
   participant_registration:
-    main:
-      caption: |
-        TODO
-      back: TODO
+    shared:
+      left: ⬅️
+      right: ➡️
+      back: ⬅️ Back
+      exit: ⬅️ Return to menu
+    user:
+      main:
+        caption: |
+          <b>Participant registration service: participant menu</b>
+
+          Choose an option to continue.
+        browse: All events
+        search: Search events
+        my_activities: My events
+        my_data: My personal data
+      browse:
+        register: Register
+      my_data:
+        fio: Enter full name
+        phone: Enter phone number
+        email: Enter your email address
+        email_confirm:
+          caption: |
+            Enter the code to confirm your email address.
+
+            If you haven't received the message, check your "Spam" folder or request a new code.
+          submit: Request new code
+      register:
+        caption: Enter type of participation
+        listener:
+          button: Listener
+          form:
+            section: Select the section you want to attend
+            faculty: Select your faculty
+            course: Select your course
+            success:
+              caption: |
+                You have successfully registered!
+        participant:
+          button: Participant
+          form:
+            section: Select the section you want to attend
+            theme: Select the conference topic
+            faculty: Select your faculty
+            course: Select your course
+            advisor: Select your English teacher
+            english_level: Select your English level
+            is_translator: Are you a translator?
+            success:
+              caption: |
+                You have successfully registered!
+        group_member:
+          button: Participant (in a group)
+          form:
+            group:
+              caption: Enter group name
+              error: This group name is already taken. Please enter a different one.
+            section: Select the section you want to attend
+            theme: Select the conference topic
+            amount: Number of participants
+            success:
+              caption: |
+                You have successfully registered!
+
+      my_activities:
+        discard:
+          button: Cancel participation
+          prompt: Are you sure you want to cancel your participation in the event?
+          success: You have successfully canceled your participation in the event.

@@ -1,17 +1,52 @@
 from aiogram import Bot, Router, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.fsm.context import FSMContext
 
-from components.shared.routing import setup_callbacks
 
-from components.participant_registration.logic.main import *
-from components.participant_registration.logic.browse import *
-from components.participant_registration.logic.register import *
+from source.bot.components.participant_registration.logic.main import pr_cb_main
+from source.bot.components.participant_registration.logic.browse import (
+    pr_cb_user_browse,
+)
+from source.bot.components.participant_registration.logic.register import (
+    pr_cb_user_register,
+    pr_cb_reg_lst_frm_section,
+    pr_cb_reg_prt_frm_section,
+)
 
 router = Router()
 
-setup_callbacks(router, {
-  "pr_cb_main": pr_cb_main,
-  "pr_cb_user_browse": pr_cb_user_browse,
-  "pr_cb_user_register": pr_cb_user_register
-})
+
+@router.callback_query(lambda c: c.data == "pr_cb_main")
+async def callback_user_main_menu(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await pr_cb_main(callback_query, bot, state)
+
+
+@router.callback_query(lambda c: c.data == "pr_cb_user_browse")
+async def callback_user_events_browse(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await pr_cb_user_browse(callback_query, bot, state)
+
+
+@router.callback_query(lambda c: c.data == "pr_cb_user_register")
+async def callback_user_register(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await pr_cb_user_register(callback_query, bot, state)
+
+
+# Listener ---------------------------------------------------------------------
+@router.callback_query(lambda c: c.data == "pr_cb_reg_lst_frm_section")
+async def callback_reg_listener_section(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await pr_cb_reg_lst_frm_section(callback_query, bot, state)
+
+
+# Participant ---------------------------------------------------------------------
+@router.callback_query(lambda c: c.data == "pr_cb_reg_prt_frm_section")
+async def callback_reg_participant_section(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await pr_cb_reg_prt_frm_section(callback_query, bot, state)
