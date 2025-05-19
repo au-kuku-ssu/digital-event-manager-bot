@@ -20,10 +20,9 @@ def add_user_to_db(
 
         cursor.execute(
             """
-            INSERT INTO people (
-                first_name, last_name, middle_name, phone, email,
-                title, degree, position, workplace, tg_name
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO people (first_name, last_name, middle_name, phone, email,
+                                title, degree, position, workplace, tg_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 first_name,
@@ -68,16 +67,16 @@ def update_user_db(
 
         cursor.execute(
             """
-            UPDATE people SET
-                first_name = ?,
-                last_name = ?,
+            UPDATE people
+            SET first_name  = ?,
+                last_name   = ?,
                 middle_name = ?,
-                phone = ?,
-                email = ?,
-                title = ?,
-                degree = ?,
-                position = ?,
-                workplace = ?
+                phone       = ?,
+                email       = ?,
+                title       = ?,
+                degree      = ?,
+                position    = ?,
+                workplace   = ?
             WHERE tg_name = ?
             """,
             (
@@ -112,6 +111,28 @@ def get_user_by_tg_name(tg_name: str) -> dict | None:
         cursor = conn.cursor()
 
         cursor.execute("SELECT * FROM people WHERE tg_name = ?", (tg_name,))
+        row = cursor.fetchone()
+
+        if row:
+            return dict(row)
+        else:
+            return None
+
+    except sqlite3.Error as e:
+        print(f"DB error: {e}")
+        return None
+
+    finally:
+        conn.close()
+
+
+def get_user_by_email(email: str) -> dict | None:
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM people WHERE email = ?", (email,))
         row = cursor.fetchone()
 
         if row:

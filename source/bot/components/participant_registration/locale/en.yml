@@ -45,6 +45,7 @@ en:
                         caption: You are not in the database
                     wrong_email:
                         caption: Invalid email format. Please try again
+                        email_already_used_caption: The user with this email has already been registered!
                     sending_code_error:
                         caption: Error sending the confirmation code. Try again later
                     wrong_code:

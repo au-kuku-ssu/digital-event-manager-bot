@@ -45,6 +45,7 @@ ru:
                         caption: Вас нет в базе данных
                     wrong_email:
                         caption: Неверный формат email. Попробуйте ещё раз
+                        email_already_used_caption: Пользователь с данным email уже зарегистрирован!
                     sending_code_error:
                         caption: Ошибка отправки кода подтверждения. Попробуйте позже
                     wrong_code:

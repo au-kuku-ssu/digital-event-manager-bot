@@ -14,6 +14,7 @@ from components.participant_registration.logic.states import RegisterStates
 from database.db import (
     register_user_from_state,
     get_user_by_tg_name,
+    get_user_by_email,
     update_user_from_state,
 )
 
@@ -119,11 +120,16 @@ async def pr_cb_handle_phone_input(message: types.Message, state: FSMContext):
 
 async def pr_cb_handle_email_input(message: types.Message, state: FSMContext):
     data = await state.get_data()
+    status = data.get("change", False)
     lang = data.get("lang", "ru")
 
     email = message.text.strip()
     if not re.match(EMAIL_REGEX, email):
         await message.answer(text=getstr(lang, prefix, "error.wrong_email.caption"))
+        return
+
+    if not status and len(get_user_by_email(email)) > 0:
+        await message.answer(text=getstr(lang, prefix, "error.wrong_email.email_already_used_caption"))
         return
 
     verification_code = str(random.randint(100000, 999999))
