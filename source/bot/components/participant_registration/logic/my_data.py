@@ -2,6 +2,7 @@ import os
 import random
 import smtplib
 from email.mime.text import MIMEText
+from datetime import datetime, timedelta
 
 from aiogram import Bot, types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -148,7 +149,10 @@ async def pr_cb_handle_email_input(message: types.Message, state: FSMContext):
         return
 
     verification_code = str(random.randint(100000, 999999))
-    VERIFICATION_CODES[message.from_user.id] = verification_code
+    VERIFICATION_CODES[message.from_user.id] = {
+        "code": verification_code,
+        "expires": datetime.now() + timedelta(minutes=15)
+    }
 
     email_sent = await send_verification_email(email, verification_code, lang)
 
@@ -168,7 +172,7 @@ async def pr_cb_handle_verification_code(message: types.Message, state: FSMConte
     user_code = message.text.strip()
     user_id = message.from_user.id
 
-    if user_id not in VERIFICATION_CODES:
+    if user_id not in VERIFICATION_CODES or datetime.now() > VERIFICATION_CODES[user_id]["expires"]:
         await message.answer(text=getstr(lang, prefix, "email_confirm.code_expired_caption"))
         await state.clear()
         return
