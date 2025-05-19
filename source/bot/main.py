@@ -41,7 +41,7 @@ async def main() -> None:
     db = Database(db_path).connect()
 
     bot = Bot(
-        token="6947622286:AAHJEqFoElAuTk6wLv-M8hpnKp9lESurvU4",
+        token=os.environ.get("TG_BOT_TOKEN"),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()
