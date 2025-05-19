@@ -1,9 +1,8 @@
 from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from components.participant_drawer.features.committee.keyboards import (
-    get_committee_member_data,
-    get_committee_members_keyboard,
+from components.participant_drawer.features.activities.keyboards import (
+    CommitteeKayboards,
 )
 from components.participant_drawer.features.activities.prefixes import CommitteePrefixes
 from components.participant_drawer.features.activities.fsm_states import (
@@ -104,7 +103,7 @@ async def cb_pd_edit_committee_member(
     # он должен лежать в members
     # ...
 
-    buttons = get_committee_members_keyboard(members)
+    buttons = CommitteeKayboards.get_committee_members_keyboard(members)
     await callback_query.message.answer(
         text="Выберите участника",
         reply_markup=buttons,
@@ -118,7 +117,7 @@ async def cb_pd_edit_committee_choose_member(
     id = int(callback_query.data.split("_")[-1])
     fields = ["ФИО", "Должность", "Звание"]
     save_button_name = "save"
-    buttons = get_committee_member_data(
+    buttons = CommitteeKayboards.get_committee_member_data(
         id,
         fields,
         save_button_name,
