@@ -3,7 +3,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
-from source.bot.components.main_menu.frontend import (
+from components.main_menu.frontend import (
     frontend_cmd_mm_start,
     frontend_cb_mm_main,
     frontend_cb_mm_settings,

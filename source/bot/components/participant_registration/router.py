@@ -2,18 +2,18 @@ from aiogram import Bot, Router, types
 from aiogram.fsm.context import FSMContext
 
 
-from source.bot.components.participant_registration.logic.states import RegisterStates
-from source.bot.components.participant_registration.logic.main import pr_cb_main
-from source.bot.components.participant_registration.logic.browse import (
+from components.participant_registration.logic.states import RegisterStates
+from components.participant_registration.logic.main import pr_cb_main
+from components.participant_registration.logic.browse import (
     pr_cb_user_browse,
 )
-from source.bot.components.participant_registration.logic.register import (
+from components.participant_registration.logic.register import (
     pr_cb_user_register,
     pr_cb_reg_lst_frm_section,
     pr_cb_reg_prt_frm_section,
 )
 
-from source.bot.components.participant_registration.logic.my_data import (
+from components.participant_registration.logic.my_data import (
     pr_cb_user_my_data,
     pr_cb_add_user_fio,
     pr_cb_add_user_phone,

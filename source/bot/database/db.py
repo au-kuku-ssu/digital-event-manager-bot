@@ -1,5 +1,5 @@
 import sqlite3
-from source.bot.database.init_db import DB_PATH
+from database.init_db import DB_PATH
 
 
 def add_user_to_db(

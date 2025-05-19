@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
 from os.path import join, dirname
-from source.bot.components.shared.locale import load_locales, get_locale_str
+from components.shared.locale import load_locales, get_locale_str
 
 locale = load_locales(join(dirname(__file__), "..", "locale"))
 

@@ -2,7 +2,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from typing import Dict, Any, Callable, Awaitable
 
-from source.bot.components.shared.db import Database
+from components.shared.db import Database
 
 
 class DatabaseMiddleware(BaseMiddleware):

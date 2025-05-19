@@ -3,10 +3,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.fsm.context import FSMContext
 
 from os.path import join, dirname
-from source.bot.components.shared.locale import load_locales, get_locale_str
-from source.bot.components.participant_registration.logic.states import RegisterStates
+from components.shared.locale import load_locales, get_locale_str
+from components.participant_registration.logic.states import RegisterStates
 
-from source.bot.database.db import (
+from database.db import (
     register_user_from_state,
     get_user_by_tg_name,
     update_user_from_state,
