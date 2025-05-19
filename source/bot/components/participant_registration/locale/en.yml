@@ -43,6 +43,8 @@ en:
                 error:
                     no_user:
                         caption: You are not in the database
+                    wrong_phone:
+                        caption: Invalid phone number format. Please try again
                     wrong_email:
                         caption: Invalid email format. Please try again
                         email_already_used_caption: The user with this email has already been registered!

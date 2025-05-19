@@ -113,9 +113,24 @@ async def pr_cb_handle_phone_input(message: types.Message, state: FSMContext):
     data = await state.get_data()
     lang = data.get("lang", "ru")
 
-    await state.update_data(phone=message.text.strip())
+    phone_number = message.text.strip()
+    if not validate_phone(phone_number):
+        await message.answer(text=getstr(lang, prefix, "error.wrong_phone.caption"))
+        return
+
+    await state.update_data(phone=phone_number)
     await message.answer(text=getstr(lang, prefix, "email"))
     await state.set_state(RegisterStates.email)
+
+
+def validate_phone(phone_number):
+    """
+    Checks the format of the phone number (Russian numbers)
+    Acceptable formats:
+    +7XXX..., 8XXX..., 7XXX...
+    """
+    pattern = r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$'
+    return re.match(pattern, phone_number) is not None
 
 
 async def pr_cb_handle_email_input(message: types.Message, state: FSMContext):

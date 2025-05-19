@@ -43,6 +43,8 @@ ru:
                 error:
                     no_user:
                         caption: Вас нет в базе данных
+                    wrong_phone:
+                        caption: Неверный формат телефонного номера. Попробуйте ещё раз
                     wrong_email:
                         caption: Неверный формат email. Попробуйте ещё раз
                         email_already_used_caption: Пользователь с данным email уже зарегистрирован!
