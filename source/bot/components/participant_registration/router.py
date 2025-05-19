@@ -1,7 +1,6 @@
 from aiogram import Bot, Router, types
 from aiogram.fsm.context import FSMContext
 
-
 from components.participant_registration.logic.states import RegisterStates
 from components.participant_registration.logic.main import pr_cb_main
 from components.participant_registration.logic.browse import (
@@ -19,10 +18,10 @@ from components.participant_registration.logic.my_data import (
     pr_cb_add_user_phone,
     pr_cb_handle_fio_input,
     pr_cb_handle_email_input,
+    pr_cb_handle_verification_code,
     pr_cb_handle_phone_input,
     pr_cb_change_user_fio,
 )
-
 
 router = Router()
 
@@ -86,6 +85,11 @@ async def msg_phone(message: types.Message, state: FSMContext):
 @router.message(RegisterStates.email)
 async def msg_email(message: types.Message, state: FSMContext):
     await pr_cb_handle_email_input(message, state)
+
+
+@router.message(RegisterStates.waiting_for_verification_code)
+async def msg_waiting_for_verification_code(message: types.Message, state: FSMContext):
+    await pr_cb_handle_verification_code(message, state)
 
 
 # ---------------------------- Registration routers -----------------------------------------
