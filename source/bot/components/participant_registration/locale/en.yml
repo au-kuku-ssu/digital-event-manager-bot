@@ -18,6 +18,10 @@ en:
       browse:
         register: Register
       my_data:
+        show_info:
+            fio: Name
+            phone: Phone
+            email: Email
         fio: Enter full name
         phone: Enter phone number
         email: Enter your email address
@@ -27,6 +31,14 @@ en:
 
             If you haven't received the message, check your "Spam" folder or request a new code.
           submit: Request new code
+        error:
+            no_user:
+                caption: You are not in the database
+            wrong_email:
+                caption: Invalid email format. Please try again
+            db_error:
+                caption: Error saving data. Possibly duplicate email or username
+        add_user: Register
       register:
         caption: Enter type of participation
         listener:

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS people (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     middle_name TEXT,
+    phone TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     title TEXT,
     degree TEXT,
