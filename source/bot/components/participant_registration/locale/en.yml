@@ -31,14 +31,22 @@ en:
 
             If you haven't received the message, check your "Spam" folder or request a new code.
           submit: Request new code
+        success:
+            reg_caption: |
+                You have successfully registered!
+            change_caption: |
+                User information successfully updated!
         error:
             no_user:
                 caption: You are not in the database
             wrong_email:
                 caption: Invalid email format. Please try again
-            db_error:
+            db_add_error:
                 caption: Error saving data. Possibly duplicate email or username
+            db_change_error:
+                caption: Error changing data. Try again
         add_user: Register
+        change_info: ✍ Edit information
       register:
         caption: Enter type of participation
         listener:

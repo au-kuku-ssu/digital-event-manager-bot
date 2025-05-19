@@ -33,16 +33,21 @@ ru:
             Если сообщение не пришло - проверьте папку "Спам" или запросите код заново.
           submit: Запросить код заново
         success:
-            caption: |
+            reg_caption: |
                 Вы успешно зарегистрированы!
+            change_caption: |
+                Информация о пользователе успешно изменена!
         error:
             no_user:
                 caption: Вас нет в базе данных
             wrong_email:
                 caption: Неверный формат email. Попробуйте ещё раз
-            db_error:
+            db_add_error:
                 caption: Ошибка при регистрации. Возможно пользователь с таким email или telegram уже есть
+            db_change_error:
+                caption: Ошибка при изменении данных. Попробуйте снова
         add_user: Пройти регистрацию
+        change_info: ✍ Изменить данные
       register:
         caption: Введите тип участия
         listener:

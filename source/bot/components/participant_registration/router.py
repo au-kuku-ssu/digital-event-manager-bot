@@ -20,6 +20,7 @@ from source.bot.components.participant_registration.logic.my_data import (
     pr_cb_handle_fio_input,
     pr_cb_handle_email_input,
     pr_cb_handle_phone_input,
+    pr_cb_change_user_fio,
 )
 
 
@@ -57,16 +58,24 @@ async def callback_add_user_fio(
     await pr_cb_add_user_fio(callback_query, bot, state)
 
 
-@router.message(RegisterStates.fio)
-async def msg_fio(message: types.Message, state: FSMContext):
-    await pr_cb_handle_fio_input(message, state)
-
-
 @router.callback_query(lambda c: c.data == "pr_cb_add_user_phone")
 async def callback_add_user_phone(
     callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     await pr_cb_add_user_phone(callback_query, bot, state)
+
+
+@router.callback_query(lambda c: c.data == "pr_cb_change_user_fio")
+async def callback_change_user_fio(
+    callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
+) -> None:
+    await state.update_data(change=True)
+    await pr_cb_change_user_fio(callback_query, bot, state)
+
+
+@router.message(RegisterStates.fio)
+async def msg_fio(message: types.Message, state: FSMContext):
+    await pr_cb_handle_fio_input(message, state)
 
 
 @router.message(RegisterStates.phone)

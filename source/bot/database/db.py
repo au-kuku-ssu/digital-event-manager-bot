@@ -50,6 +50,61 @@ def add_user_to_db(
         conn.close()
 
 
+def update_user_db(
+    first_name,
+    last_name,
+    middle_name,
+    phone,
+    email,
+    tg_name,
+    title=None,
+    degree=None,
+    position=None,
+    workplace=None,
+):
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            UPDATE people SET
+                first_name = ?,
+                last_name = ?,
+                middle_name = ?,
+                phone = ?,
+                email = ?,
+                title = ?,
+                degree = ?,
+                position = ?,
+                workplace = ?
+            WHERE tg_name = ?
+            """,
+            (
+                first_name,
+                last_name,
+                middle_name,
+                phone,
+                email,
+                title,
+                degree,
+                position,
+                workplace,
+                tg_name,
+            ),
+        )
+
+        conn.commit()
+        return True
+
+    except sqlite3.IntegrityError as e:
+        print(f"Integrity Error: {e}")
+        return False
+
+    finally:
+        conn.close()
+
+
 def get_user_by_tg_name(tg_name: str) -> dict | None:
     try:
         conn = sqlite3.connect(DB_PATH)
@@ -78,15 +133,43 @@ def register_user_from_state(data: dict, tg_name: str) -> bool:
     if len(fio_parts) == 1:
         last_name = fio_parts[0]
         first_name = ""
-        middle_name = None
+        middle_name = ""
     elif len(fio_parts) == 2:
         last_name, first_name = fio_parts
-        middle_name = None
+        middle_name = ""
     else:
         last_name, first_name, *rest = fio_parts
         middle_name = " ".join(rest) if rest else None
 
     return add_user_to_db(
+        first_name=first_name,
+        last_name=last_name,
+        middle_name=middle_name,
+        phone=data.get("phone"),
+        email=data.get("email"),
+        tg_name=tg_name,
+        title=None,
+        degree=None,
+        position=None,
+        workplace=None,
+    )
+
+
+def update_user_from_state(data: dict, tg_name: str) -> bool:
+    fio_parts = data.get("fio", "").split()
+
+    if len(fio_parts) == 1:
+        last_name = fio_parts[0]
+        first_name = ""
+        middle_name = ""
+    elif len(fio_parts) == 2:
+        last_name, first_name = fio_parts
+        middle_name = ""
+    else:
+        last_name, first_name, *rest = fio_parts
+        middle_name = " ".join(rest) if rest else None
+
+    return update_user_db(
         first_name=first_name,
         last_name=last_name,
         middle_name=middle_name,
