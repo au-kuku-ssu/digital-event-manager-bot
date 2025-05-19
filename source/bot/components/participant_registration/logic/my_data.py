@@ -177,7 +177,7 @@ async def pr_cb_handle_verification_code(message: types.Message, state: FSMConte
         await state.clear()
         return
 
-    if user_code == VERIFICATION_CODES[user_id]:
+    if user_code == VERIFICATION_CODES[user_id]["code"]:
         data = await state.get_data()
         status = data.get("change", False)
 
