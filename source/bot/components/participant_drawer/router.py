@@ -28,8 +28,8 @@ async def cb_pd_main_menu(callback_query: types.CallbackQuery, bot: Bot) -> None
         callback_data=f"{PREFIX}activities",
     )
     keyboard.button(
-      text=getstr(lang, "participant_drawer.applications"),
-      callback_data=f"{APPLICATION_PREFIX}",
+      text=getstr(lang, "participant_drawer.applications.caption"),
+      callback_data=f"{APPLICATION_PREFIX}"
     )
 
     keyboard.adjust(1)

@@ -13,15 +13,10 @@ router = Router()
 
 
 @router.callback_query(lambda c: c.data == ApplicationPrefixes.PREFIX)
-@router.callback_query(F.text == "Меню обработки заявок")
-async def cb_pd_application_menu(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
-    # Клавиатура для управления заявками
+@router.message(F.text == "Меню обработки заявок")
+async def cb_pd_application_menu(callback: CallbackQuery | Message, bot: Bot, state: FSMContext) -> None:
     await state.clear()
-    await callback.message.answer("Управление заявками участников:", reply_markup=kb_application_menu())
-    # await callback.message.answer("Вы всегда можете вернуться в это меню с помощью кнопки под текстовым полем",
-    #                               reply_markup=kb_back_to_menu())
-    await callback.message.answer("Вы всегда можете вернуться в это меню с помощью кнопки под текстовым полем")
-    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.edit_text("Управление заявками участников:", reply_markup=kb_application_menu())
 
 
 # ____________________________ Approving ____________________________
@@ -40,15 +35,16 @@ async def cb_pd_application_list(callback: CallbackQuery, bot: Bot, state: FSMCo
          "degree": "магистр 1 курса", "translator": "Есть", "contact": "ivan@example.com", "status": "pending"},
         {"id": 2, "name": "Петр Петров", "event": "Воркшоп Python", "topic": "Терагерцовое излучение", "faculty": "Инфиз",
          "degree": "магистр 2 курса", "translator": "Есть", "contact": "+79123456789", "status": "approved"},
+        {"id": 3, "name": "Сергей Иванов", "event": "Конференция AI", "topic": "Фурье-преобразование", "faculty": "фКНиИТ",
+         "degree": "магистр 1 курса", "translator": "Есть", "contact": "ivan@example.com", "status": "pending"},
+        {"id": 4, "name": "Алексей Петров", "event": "Воркшоп Python", "topic": "Терагерцовое излучение", "faculty": "Инфиз",
+         "degree": "магистр 2 курса", "translator": "Есть", "contact": "+79123456789", "status": "approved"}
     ]
 
     if not applications:
-        await callback.message.answer("Нет активных заявок", reply_markup=kb_back_to_menu())
-        # await callback.message.answer("Нет активных заявок")
-        return
+        await callback.answer("Нет активных заявок")
 
-    await callback.message.answer("Список заявок:", reply_markup=kb_back_to_menu())
-    # await callback.message.answer("Список заявок:")
+    await callback.message.answer("Список заявок:")
 
     for app in applications:
         status_emoji = "🕒"
@@ -56,10 +52,10 @@ async def cb_pd_application_list(callback: CallbackQuery, bot: Bot, state: FSMCo
 
         if app['status'] == 'approved':
             status_emoji = "✅"
-            kb = kb_change_status(app['id'])
+            kb = InlineKeyboardMarkup(inline_keyboard=[])
         elif app['status'] == 'pending':
             status_emoji = "🕒"
-            kb = InlineKeyboardMarkup(inline_keyboard=[])
+            kb = kb_change_status(app['id'])
 
         await callback.message.answer(
             f"""
@@ -68,13 +64,13 @@ async def cb_pd_application_list(callback: CallbackQuery, bot: Bot, state: FSMCo
             Мероприятие: {app['event']}\n
             Тема доклада: {app['topic']}\n
             Образование: {app['degree']}\n
-            Наличие образования переводчика: {app['traslator']}\n
+            Наличие образования переводчика: {app['translator']}\n
             Контактная информация: {app['contact']}\n
             Статус: {'Подтверждено' if app['status'] == 'approved' else 'Ожидает подтверждения'}
             """, reply_markup=kb
         )
 
-    # await callback.message.answer("Выберите действие:", reply_markup=kb_back_to_menu())
+    await callback.message.answer("Управление заявками участников:", reply_markup=kb_application_menu())
 
 
 # Подтверждение заявки
@@ -109,8 +105,7 @@ async def cb_pd_application_reject(callback: CallbackQuery, bot: Bot, state: FSM
 # Удаление заявки - шаг 1: выбор ID
 @router.callback_query(lambda c: c.data == f"{ApplicationPrefixes.DELETE}")
 async def cb_pd_application_delete_start(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
-    await callback.message.answer("Введите ID заявки для удаления:", reply_markup=kb_back_to_menu())
-    # await callback.message.answer("Введите ID заявки для удаления:")
+    await callback.message.edit_text("Введите ID заявки для удаления:", reply_markup=kb_back_to_menu())
     await state.set_state(ApplicationStates.waiting_for_delete_confirmation)
     await callback.answer()
 
@@ -118,11 +113,6 @@ async def cb_pd_application_delete_start(callback: CallbackQuery, bot: Bot, stat
 # Удаление заявки - подтверждение и выполнение
 @router.message(ApplicationStates.waiting_for_delete_confirmation)
 async def cb_pd_application_delete_confirm(message: Message, bot: Bot, state: FSMContext) -> None:
-    if message.text == "main_menu":
-        await cb_pd_application_menu(message)
-        await state.clear()
-        return
-
     kb = InlineKeyboardMarkup(inline_keyboard=[])
     try:
         app_id = int(message.text)
@@ -138,26 +128,24 @@ async def cb_pd_application_delete_confirm(message: Message, bot: Bot, state: FS
             reply_markup=kb
         )
     except ValueError:
-        # await message.answer("Пожалуйста, введите корректный ID заявки.", reply_markup=kb_back_to_menu())
         await message.answer("Пожалуйста, введите корректный ID заявки.")
 
 
 # Подтверждение удаления
-@router.callback_query(F.data.startswith("confirm_application_delete"))
+@router.callback_query(F.data.startswith(f"{ApplicationPrefixes.DELETE}"))
+@router.callback_query(F.data.endswith("confirm"))
 async def cb_pd_application_delete_final(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
-    app_id = int(callback.data.split("_")[3])
+    app_id = int(callback.data.split("_")[-2])
     # Здесь должна быть логика удаления из БД
     # await db.delete_app(app_id)
 
-    await callback.message.edit_text(f"Заявка #{app_id} удалена.")
-    # await callback.message.answer("Выберите действие:", reply_markup=kb_back_to_menu())
+    await callback.answer(f"Заявка #{app_id} удалена.")
 
 
 # Отмена удаления
-@router.callback_query(F.data == "cancel_application_delete")
+@router.callback_query(lambda c: c.data == f"{ApplicationPrefixes.DELETE}cancel")
 async def cb_pd_application_delete_cancel(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
-    await callback.message.edit_text("Удаление отменено.")
-    # await callback.message.answer("Выберите действие:", reply_markup=kb_back_to_menu())
+    await callback.answer("Удаление отменено.")
 
 
 # ____________________________ Editing ____________________________
@@ -166,19 +154,13 @@ async def cb_pd_application_delete_cancel(callback: CallbackQuery, bot: Bot, sta
 # Редактирование заявки - шаг 1: выбор ID
 @router.callback_query(lambda c: c.data == f"{ApplicationPrefixes.EDIT}")
 async def cb_pd_application_edit_start(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
-    await callback.message.answer("Введите ID заявки для редактирования:", reply_markup=kb_back_to_menu())
-    # await callback.message.answer("Введите ID заявки для редактирования:")
+    await callback.message.edit_text("Введите ID заявки для редактирования:", reply_markup=kb_back_to_menu())
     await state.set_state(ApplicationStates.waiting_for_edit_choice)
 
 
 # Редактирование заявки - шаг 2: выбор поля
 @router.message(ApplicationStates.waiting_for_edit_choice)
 async def cb_pd_application_edit_choose_field(message: Message, bot: Bot, state: FSMContext) -> None:
-    # if message.text == "main_menu":
-    #     await cb_pd_application_menu(message)
-    #     await state.clear()
-    #     return
-
     kb = InlineKeyboardMarkup(inline_keyboard=[])
     try:
         app_id = int(message.text)
@@ -197,26 +179,22 @@ async def cb_pd_application_edit_choose_field(message: Message, bot: Bot, state:
         )
         await state.set_state(ApplicationStates.waiting_for_edit_value)
     except ValueError:
-        await message.answer("Пожалуйста, введите корректный ID заявки.", reply_markup=kb_back_to_menu())
+        await message.answer("Пожалуйста, введите корректный ID заявки.")
 
 
 # Редактирование заявки - шаг 3: ввод нового значения
-@router.callback_query(ApplicationStates.waiting_for_edit_value, F.data.startswith(f"{ApplicationPrefixes.EDIT}"))
+@router.callback_query(ApplicationStates.waiting_for_edit_value)
+@router.callback_query(F.data.startswith(f"{ApplicationPrefixes.EDIT}"))
 async def cb_pd_application_edit_get_value(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
     field = callback.data.split(f"{ApplicationPrefixes.EDIT}")[1]
     await state.update_data(field=field)
     await state.set_state(ApplicationStates.waiting_for_edit_finish)
-    # await callback.message.answer(f"Введите новое значение для поля {field}:", reply_markup=kb_back_to_menu())
-    await callback.message.answer(f"Введите новое значение для поля {field}:")
+    await callback.message.edit_text(f"Введите новое значение для поля {field}:")
 
 
 # Редактирование заявки - финал (здесь должна быть логика обновления в БД)
 @router.message(ApplicationStates.waiting_for_edit_finish)
 async def cb_pd_application_edit_finish(message: Message, bot: Bot, state: FSMContext) -> None:
-    # if message.text == "main_menu":
-    #     await cb_pd_application_menu(message)
-    #     await state.clear()
-    #     return
 
     user_data = await state.get_data()
     app_id = user_data['app_id']
@@ -225,11 +203,10 @@ async def cb_pd_application_edit_finish(message: Message, bot: Bot, state: FSMCo
 
     # Здесь должна быть логика обновления в БД
     # await db.update_app_field(app_id, field, new_value)
-    
-    await state.clear()
 
     await message.answer(f"""
         Заявка #{app_id} обновлена:\n
         Поле {field} изменено на: {new_value}
         """, reply_markup=kb_back_to_menu()
     )
+    await state.clear()
