@@ -144,7 +144,7 @@ async def pr_cb_handle_email_input(message: types.Message, state: FSMContext):
         await message.answer(text=getstr(lang, prefix, "error.wrong_email.caption"))
         return
 
-    if not status and len(get_user_by_email(email)) > 0:
+    if not status and not isinstance(get_user_by_email(email), type(None)):
         await message.answer(text=getstr(lang, prefix, "error.wrong_email.email_already_used_caption"))
         return
 
