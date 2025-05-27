@@ -1,6 +1,6 @@
 PLACEHOLDER_PRESENTS = [
     {
-        "id": "pres001",
+        "id": 1,
         "speakers": ["Artem Filin", "Gleb Savchenko", "Kirill Indyukov"],
         "topic": "Specifications and usage of the C# programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the C# programing language. It describes who and when created this programming language. In addition, the study presents a sample program written in C#. Also, the report considers the software that was developed using C#.",
@@ -10,7 +10,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres002",
+        "id": 2,
         "speakers": ["Polina Lyuzhinas", "Svetlana Goncharova", "Elisaveta Shelestova"],
         "topic": "Specifications and usage of the R programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the R programing language. It describes who and when created this programming language. In addition, the study presents a sample program written in R. Also, the report considers the software that was developed using R.",
@@ -20,7 +20,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres003",
+        "id": 3,
         "speakers": [
             "Viktoriya Yurova",
             "Veronika Suvorova",
@@ -41,7 +41,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres004",
+        "id": 4,
         "speakers": [
             "Elizaveta Baboshkina",
             "Aleksey Tatarnikov",
@@ -57,7 +57,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres005",
+        "id": 5,
         "speakers": [
             "Fedor Musatov",
             "Vadim Karasev",
@@ -72,7 +72,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres006",
+        "id": 6,
         "speakers": ["Artem Rudyak", "Ravil Nasyrov", "Robert Tolstov"],
         "topic": "Specifications and usage of the Objective-C programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the Objective-C programming language. It describes who and when created this programming language. In addition, the study presents a sample program written in Objective-C. Also, the report considers the software that was developed using Objective-C.",
@@ -82,7 +82,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres007",
+        "id": 7,
         "speakers": ["Leonid Enzhaev", "Ilya Belonozhko", "Egor Krutyakov"],
         "topic": "Specifications and usage of the Rust programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the Rust programming language. It describes who and when created this programming language. In addition, the study presents a sample program written in Rust. Also, the report considers the software that was developed using Rust.",
@@ -92,7 +92,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres008",
+        "id": 8,
         "speakers": [
             "Artem Kotlyar",
             "Ekaterina Zelenova",
@@ -108,7 +108,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres009",
+        "id": 9,
         "speakers": [
             "Fedor Musatov",
             "Vadim Karasev",
@@ -123,7 +123,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres010",
+        "id": 10,
         "speakers": ["Artem Rudyak", "Ravil Nasyrov", "Robert Tolstov"],
         "topic": "Specifications and usage of the Objective-C programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the Objective-C programming language. It describes who and when created this programming language. In addition, the study presents a sample program written in Objective-C. Also, the report considers the software that was developed using Objective-C.",
@@ -133,7 +133,7 @@ PLACEHOLDER_PRESENTS = [
         "final_score": "",
     },
     {
-        "id": "pres011",
+        "id": 11,
         "speakers": ["Leonid Enzhaev", "Ilya Belonozhko", "Egor Krutyakov"],
         "topic": "Specifications and usage of the Rust programming language",
         "abstract": "The aim of the presentation is to discuss the specifications of the Rust programming language. It describes who and when created this programming language. In addition, the study presents a sample program written in Rust. Also, the report considers the software that was developed using Rust.",

@@ -36,10 +36,10 @@ async def frontend_cb_re_show_presentations(
     page = int(callback_query.data.split(":")[1])
 
     data = await state.get_data()
-    jury_code = data["jury_code"]
+    auth_code = data.get("auth_code")
 
-    if not jury_code:
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "no jury code")
+    if not auth_code:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no auth code")
         await callback_query.message.edit_text(
             text=caption_err,
             reply_markup=keyboard_err,
@@ -48,7 +48,7 @@ async def frontend_cb_re_show_presentations(
 
     # Fetch the presentations and generate the keyboard with the appropriate page
     caption, keyboard = re_get_presentations_keyboard(
-        lang, PLACEHOLDER_PRESENTS, jury_code, page
+        lang, PLACEHOLDER_PRESENTS, auth_code, page
     )
 
     # If no presents available
@@ -128,19 +128,42 @@ async def frontend_cb_re_eval_handle_score(
 
     data = await state.get_data()
     current_pres_id = data.get("pres_id")
+    auth_code = data.get("auth_code") # Corrected from jury_code
 
-    if not current_pres_id:
+    if not current_pres_id or not auth_code:
+        # Clear all evaluation-related state data if essential IDs are missing
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id")
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id or auth code")
         await callback_query.message.edit_text(
             text=caption_err,
             reply_markup=keyboard_err,
         )
         return
 
-    scores = dict(data.get("scores") or {})
-    scores[criterion] = value
-    await state.update_data(scores=scores)
+    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if not jury_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None) # Clear sensitive data
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    # Convert pres_id to int, as it's likely stored as str from callback_data
+    try:
+        participant_id = int(current_pres_id)
+    except ValueError:
+        # Handle error if pres_id is not a valid integer
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+    
+    await db.save_score(jury_id, participant_id, criterion, float(value))
 
     try:
         current_criterion_idx = EVAL_CRITERIA.index(criterion)
@@ -179,10 +202,32 @@ async def frontend_cb_re_eval_return_to_score(
 
     data = await state.get_data()
     current_pres_id = data.get("pres_id")
+    auth_code = data.get("auth_code")
 
-    if not current_pres_id:
+    if not current_pres_id or not auth_code:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id")
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id or auth code")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if not jury_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+    
+    try:
+        participant_id = int(current_pres_id)
+    except ValueError:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
         await callback_query.message.edit_text(
             text=caption_err,
             reply_markup=keyboard_err,
@@ -197,10 +242,8 @@ async def frontend_cb_re_eval_return_to_score(
         )
         return
 
-    # Nullify score
-    scores = dict(data.get("scores") or {})
-    scores.pop(criterion, None)
-    await state.update_data(scores=scores)
+    # Nullify score in DB
+    await db.delete_score(jury_id, participant_id, criterion)
 
     caption, keyboard = re_get_criterion_keyboard(lang, current_pres_id, criterion)
     await callback_query.message.edit_text(
@@ -218,23 +261,54 @@ async def frontend_re_eval_finalize_score(
     """
     lang = "ru"
 
-    # Check if there are problems with scores
-    is_scores_ok = await re_finalize_score(state)
-    if not is_scores_ok:
-        caption, keyboard = re_get_error_keyboard(lang)
+    data = await state.get_data()
+    pres_id = data.get("pres_id")
+    auth_code = data.get("auth_code")
 
+    if not pres_id or not auth_code:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
-
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "missing criteria")
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "missing pres_id or auth_code")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+    
+    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if not jury_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
         await callback_query.message.edit_text(
             text=caption_err,
             reply_markup=keyboard_err,
         )
         return
 
-    data = await state.get_data()
-    scores = data.get("scores", {})
-    pres_id = data.get("pres_id")
+    try:
+        participant_id = int(pres_id)
+    except ValueError:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    scores = await db.get_scores(jury_id, participant_id)
+
+    # Check if there are problems with scores
+    # The re_finalize_score service might need adjustment to accept scores as a parameter
+    # or fetch them itself if it has access to db and necessary ids.
+    # For now, passing scores directly.
+    is_scores_ok = await re_finalize_score(scores) # Pass scores to the service function
+    if not is_scores_ok:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "missing criteria")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
 
     caption, keyboard = re_get_final_score_keyboard(lang, scores, pres_id)
 
@@ -256,9 +330,43 @@ async def frontend_cb_re_eval_comment(
     lang = "ru"
 
     data = await state.get_data()
-    if not data.get("pres_id") or data.get("scores") is None:
+    pres_id = data.get("pres_id")
+    auth_code = data.get("auth_code")
+
+    if not pres_id or not auth_code:
         caption_err, keyboard_err = re_get_error_keyboard(
-            lang, "missing pres_id or scores"
+            lang, "missing pres_id or auth_code"
+        )
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if not jury_id:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    try:
+        participant_id = int(pres_id)
+    except ValueError:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    scores = await db.get_scores(jury_id, participant_id)
+
+    if not scores:
+        caption_err, keyboard_err = re_get_error_keyboard(
+            lang, "missing scores in db for comment"
         )
         await callback_query.message.edit_text(
             text=caption_err,
@@ -268,7 +376,6 @@ async def frontend_cb_re_eval_comment(
 
     # Set state for comment waiting
     await state.set_state(REEvaluationStates.waiting_for_comment)
-    # await state.update_data(pres_comments=None)
 
     caption, keyboard = re_get_comment_keyboard(lang)
 
@@ -286,11 +393,6 @@ async def frontend_st_re_eval_comment(
     Stores the comment alongside the scores and returns to the main menu.
     """
     lang = "ru"
-
-    # Unnecessary?
-    # current_state = await state.get_state()
-    # if not current_state != REEvaluationStates.waiting_for_comment:
-    #   return
 
     comment = message.text.strip()
     await state.set_state(None)
@@ -315,8 +417,39 @@ async def frontend_cb_re_eval_marks_accepted(
     lang = "ru"
 
     data = await state.get_data()
-    if not data.get("pres_id") or data.get("scores") is None:
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "no pres id or scores")
+    pres_id = data.get("pres_id")
+    auth_code = data.get("auth_code")
+
+    if not pres_id or not auth_code:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no pres id or auth code")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if not jury_id:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    try:
+        participant_id = int(pres_id)
+    except ValueError:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
+        await callback_query.message.edit_text(
+            text=caption_err,
+            reply_markup=keyboard_err,
+        )
+        return
+
+    scores = await db.get_scores(jury_id, participant_id)
+    if not scores:
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no scores in db")
         await callback_query.message.edit_text(
             text=caption_err,
             reply_markup=keyboard_err,
@@ -324,7 +457,7 @@ async def frontend_cb_re_eval_marks_accepted(
         return
 
     await state.set_state(REEvaluationStates.marks_accepted)
-    marks_state = await re_submit_scores(state)
+    marks_state = await re_submit_scores(state, db, jury_id, participant_id, scores)
 
     if not marks_state:
         caption_err, keyboard_err = re_get_error_keyboard(lang, "missing data")
