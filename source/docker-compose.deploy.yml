@@ -1,0 +1,7 @@
+
+services:
+  bot:
+    image: ${IMAGE_REF}
+    restart: unless_stopped
+    environment:
+      - TG_BOT_TOKEN=${TG_BOT_TOKEN}

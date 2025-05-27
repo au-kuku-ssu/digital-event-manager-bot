@@ -1,0 +1,23 @@
+name: Deploy Docker
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - 'team-4/reports_cicd'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: |
+        umask 0077
+        mkdir ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+        echo "${{ secrets.SSH_CONF }}" > ~/.ssh/config
+        ssh-keyscan -H "${{ secrets.SSH_HOST }}" > ~/.ssh/known_hosts
+        docker context create deploy --docker host="ssh://${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+    - env:
+        TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN_DEPLOY }}
+        IMAGE_REF: ${{ steps.meta.outputs.tags }}
+      run: docker-compose --context deploy -f source/docker-compose.deploy.yml up -d
+    - run: rm -rf ~/.ssh
