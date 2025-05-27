@@ -225,3 +225,88 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"SQL error in update_comment: {e}")
             self.conn.rollback()
+
+    async def get_presentations_with_scores_and_details(self) -> list[dict]:
+        """Fetches all presentations (participants) with their scores, comments, and juror details."""
+        presentations_data = []
+        try:
+            # Step 1: Fetch all participants (presentations) and their primary speaker
+            self.cursor.execute(
+                """
+                SELECT p.id, p.presentation_topic, pe.first_name, pe.last_name 
+                FROM participants p
+                JOIN people pe ON p.person_id = pe.id
+                ORDER BY p.id
+                """
+            )
+            participants = self.cursor.fetchall()
+
+            for participant_id, topic, speaker_first, speaker_last in participants:
+                presentation_entry = {
+                    "id": participant_id,
+                    "topic": topic,
+                    "speakers": [f"{speaker_first} {speaker_last}"], # Assuming one speaker for now
+                    "jury_evaluations": [],
+                    "calculated_final_scores_by_juror": {}, # Temp store for individual final scores
+                    "final_score": 0.0, # Overall final score for the presentation
+                }
+
+                # Step 2 & 3: Fetch scores, comments, and juror details for this participant
+                self.cursor.execute(
+                    """
+                    SELECT 
+                        js.jury_id, ju.access_key, pj.first_name, pj.last_name,
+                        js.organization_criteria, js.content_criteria, js.visuals_criteria, 
+                        js.mechanics_criteria, js.delivery_criteria, js.comment
+                    FROM jury_scores js
+                    JOIN juries ju ON js.jury_id = ju.id
+                    JOIN people pj ON ju.person_id = pj.id
+                    WHERE js.participant_id = ?
+                    """,
+                    (participant_id,)
+                )
+                evaluations = self.cursor.fetchall()
+                
+                criteria_names = ["organization", "content", "visuals", "mechanics", "delivery"]
+                total_final_score_sum = 0.0
+                num_juror_scores = 0
+
+                for eval_row in evaluations:
+                    (jury_id, access_key, jury_first, jury_last,
+                     org, content, visuals, mechanics, delivery, comment_text) = eval_row
+                    
+                    scores = {}
+                    current_juror_total = 0
+                    raw_scores = [org, content, visuals, mechanics, delivery]
+
+                    for i, crit_name in enumerate(criteria_names):
+                        if raw_scores[i] is not None:
+                            scores[crit_name] = raw_scores[i]
+                            current_juror_total += raw_scores[i]
+                    
+                    # Store this juror's total (final score for this presentation)
+                    presentation_entry["calculated_final_scores_by_juror"][access_key] = current_juror_total
+                    total_final_score_sum += current_juror_total
+                    if scores: # Count this juror if they provided any scores
+                        num_juror_scores +=1
+
+                    presentation_entry["jury_evaluations"].append({
+                        "juror_access_key": access_key,
+                        "juror_name": f"{jury_first} {jury_last}",
+                        "scores": scores, # individual criteria scores
+                        "comment": comment_text if comment_text else "",
+                        "juror_final_score": current_juror_total # final score by this specific juror
+                    })
+                
+                if num_juror_scores > 0:
+                    presentation_entry["final_score"] = round(total_final_score_sum / num_juror_scores, 2)
+                else:
+                    presentation_entry["final_score"] = "-" # Or 0.0, depending on display preference
+
+                presentations_data.append(presentation_entry)
+            
+            return presentations_data
+
+        except sqlite3.Error as e:
+            logger.error(f"SQL error in get_presentations_with_scores_and_details: {e}")
+            return []

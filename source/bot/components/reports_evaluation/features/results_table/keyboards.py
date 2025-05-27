@@ -7,63 +7,74 @@ from components.reports_evaluation.utils import getstr
 
 def re_get_results_table_keyboard(
     lang: str,
-    presentations: list[dict],
-    juries: list[tuple[str, str, str]],
+    presentations_from_db: list[dict],
     page: int = 0,
     per_page: int = 5,
 ):
     """
     Returns a caption with the results table and navigation keyboard.
-    Displays speakers, topic, individual jury scores (or "-"), and comments.
+    Displays speakers, topic, individual jury scores (or "-"), and comments from DB data.
     """
 
-    # TODO: More like a template. Should be remade when db will be in use.
     def format_presentation(pres: dict, idx: int) -> str:
-        speakers = ", ".join(pres["speakers"])
-        topic = pres["topic"]
-        final_score = pres.get("final_score", "-")
-
-        # Prepare aligned table of jury scores
-        jury_scores = pres.get("jury_scores", {})
-        comment_lines = []
+        speakers = ", ".join(pres.get("speakers", ["N/A"]))
+        topic = pres.get("topic", "N/A")
+        # Overall final_score for the presentation, calculated in the DB method
+        final_score_display = pres.get("final_score", "-")
 
         table_lines = []
-        for jury in juries:
-            name = f"{jury[1]} {jury[2]}"
-            scores = jury_scores.get(jury[0], {})
-            score_values = [
-                str(scores.get(criterion, "-")).rjust(3) for criterion in EVAL_CRITERIA
-            ]
-            score_values.append(str(scores.get("final_score", "-")).rjust(3))
+        comment_lines = []
+        unique_jurors_for_header = [] # To build the header dynamically if needed, or use a fixed list
 
-            line = f"{name:<25} | " + " ".join(score_values)
+        # pres["jury_evaluations"] contains all evaluations for this presentation
+        for evaluation in pres.get("jury_evaluations", []):
+            juror_name = evaluation.get("juror_name", "Unknown Juror")
+            # juror_access_key = evaluation.get("juror_access_key") # Available if needed
+            juror_scores = evaluation.get("scores", {}) # Dict of criteria:score
+            juror_comment = evaluation.get("comment", "")
+            # juror_specific_final_score = evaluation.get("juror_final_score", "-") # Final score by this juror
+
+            # Prepare score values for table line
+            score_values = [
+                str(juror_scores.get(criterion, "-")).rjust(3) for criterion in EVAL_CRITERIA
+            ]
+            # Add the juror's own total for this presentation
+            score_values.append(str(evaluation.get("juror_final_score", "-")).rjust(3))
+
+            line = f"{juror_name:<25} | " + " ".join(score_values)
             table_lines.append(line)
 
-        # Collect comments
-        for jury in juries:
-            comment = pres.get("comments", {}).get(jury[0], "")
-            if comment and comment.strip():
-                jury_name = f"{jury[1]} {jury[2]}"
-                comment_lines.append(f"💬 <i>{jury_name}</i>: {comment.strip()}")
+            if juror_comment and juror_comment.strip():
+                comment_lines.append(f"💬 <i>{juror_name}</i>: {juror_comment.strip()}")
+
+            if juror_name not in unique_jurors_for_header:
+                unique_jurors_for_header.append(juror_name)
+
+        # Header for the score table - uses EVAL_CRITERIA + a "Fin" for juror's total
+        criteria_header_short = " ".join([crit[:3].upper() for crit in EVAL_CRITERIA]) + " FIN"
+        header_line = f"{'Jury Member':<25} | {criteria_header_short}"
+        # Fallback if no evaluations for this presentation
+        if not table_lines:
+            table_lines.append(f"{'No scores submitted yet.':<25}")
 
         return (
             f"<b>#{idx}</b> | {speakers}\n"
             f"<b>{topic}</b>\n"
-            f"<b>{getstr(lang, 'reports_evaluation.results_table.final_score')}:</b> {final_score}\n"
-            f"<pre>{'Jury Member':<25} | Org Con Vis Mec Del Fin\n"
+            f"<b>{getstr(lang, 'reports_evaluation.results_table.final_score')}:</b> {final_score_display}\n"
+            f"<pre>{header_line}\n"
             + "\n".join(table_lines)
             + "</pre>\n"
             + ("\n".join(comment_lines) if comment_lines else "")
         ).strip()
 
-    # Sort by final_score descending (or push empty to the end)
+    # Sort by final_score descending (or push empty/non-numeric to the end)
     def sort_key(p):
-        try:
-            return -float(p.get("final_score", ""))
-        except (ValueError, TypeError):
-            return float("inf")
+        fs = p.get("final_score")
+        if isinstance(fs, (int, float)):
+            return -fs
+        return float("inf") # Non-numeric or missing scores go to the end
 
-    sorted_presentations = sorted(presentations, key=sort_key)
+    sorted_presentations = sorted(presentations_from_db, key=sort_key)
 
     total_pages = (len(sorted_presentations) - 1) // per_page + 1
     page = max(0, min(page, total_pages - 1))

@@ -24,9 +24,11 @@ async def frontend_cb_re_results_table(
 
     page = int(callback_query.data.split(":")[1])
 
-    juries = await db.get_all_juries_with_names()
+    # Fetch comprehensive presentation data including scores and juror details
+    presentations_from_db = await db.get_presentations_with_scores_and_details()
+
     caption, keyboard = re_get_results_table_keyboard(
-        lang, PLACEHOLDER_PRESENTS, juries, page
+        lang, presentations_from_db, page=page
     )
 
     await callback_query.message.edit_text(
