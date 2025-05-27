@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS juries (
     university_id INTEGER NOT NULL,
     person_id INTEGER NOT NULL,
     is_chairman INTEGER NOT NULL,
-    access_key INTEGER NOT NULL,
+    access_key VARCHAR(64) NOT NULL,
     FOREIGN KEY (university_id) REFERENCES universities(id),
     FOREIGN KEY (person_id) REFERENCES people(id)
 );
