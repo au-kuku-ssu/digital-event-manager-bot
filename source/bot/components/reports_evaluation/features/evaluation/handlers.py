@@ -22,11 +22,12 @@ from components.reports_evaluation.services.evaluation import (
     re_finalize_score,
 )
 from components.reports_evaluation.utils import getstr, re_require_auth
+from components.shared.db import Database
 
 
 @re_require_auth
 async def frontend_cb_re_show_presentations(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles showing presentation keyboard.
@@ -66,7 +67,7 @@ async def frontend_cb_re_show_presentations(
 
 @re_require_auth
 async def frontend_cb_re_eval_choose_presentation(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles starting of report evaluation.
@@ -114,7 +115,7 @@ async def frontend_cb_re_eval_choose_presentation(
 
 @re_require_auth
 async def frontend_cb_re_eval_handle_score(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles score selection for a given criterion during evaluation.
@@ -153,7 +154,7 @@ async def frontend_cb_re_eval_handle_score(
 
     next_criterion_idx = current_criterion_idx + 1
     if next_criterion_idx >= len(EVAL_CRITERIA):
-        await frontend_re_eval_finalize_score(callback_query, bot, state)
+        await frontend_re_eval_finalize_score(callback_query, bot, state, db)
         return
 
     next_criterion = EVAL_CRITERIA[next_criterion_idx]
@@ -166,7 +167,7 @@ async def frontend_cb_re_eval_handle_score(
 
 @re_require_auth
 async def frontend_cb_re_eval_return_to_score(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles navigation back to a previously scored criterion.
@@ -210,7 +211,7 @@ async def frontend_cb_re_eval_return_to_score(
 
 @re_require_auth
 async def frontend_re_eval_finalize_score(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Final step of the evaluation: checks if all criteria are scored and shows the summary with action buttons.
@@ -246,7 +247,7 @@ async def frontend_re_eval_finalize_score(
 
 @re_require_auth
 async def frontend_cb_re_eval_comment(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Switches FSM to the comment input state after all scores are submitted.
@@ -278,7 +279,7 @@ async def frontend_cb_re_eval_comment(
 
 
 async def frontend_st_re_eval_comment(
-    message: types.Message, bot: Bot, state: FSMContext
+    message: types.Message, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles user-submitted comments after scoring.
@@ -305,7 +306,7 @@ async def frontend_st_re_eval_comment(
 
 @re_require_auth
 async def frontend_cb_re_eval_marks_accepted(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Finalizes the evaluation when the reviewer chooses to skip comments or adds them.
@@ -343,7 +344,7 @@ async def frontend_cb_re_eval_marks_accepted(
 
 @re_require_auth
 async def frontend_cb_re_eval_back_to_summary(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     await state.set_state(None)
-    await frontend_re_eval_finalize_score(callback_query, bot, state)
+    await frontend_re_eval_finalize_score(callback_query, bot, state, db)

@@ -1,6 +1,6 @@
 from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
-
+import logging
 
 from components.reports_evaluation.features.auth.keyboards import (
     re_get_auth_continue_keyboard,
@@ -13,6 +13,7 @@ from components.reports_evaluation.utils import (
     getstr,
     re_delete_auth_messages,
 )
+from components.shared.db import Database
 
 
 async def frontend_cb_re_auth(
@@ -36,7 +37,7 @@ async def frontend_cb_re_auth(
 
 
 async def frontend_st_re_process_code(
-    message: types.Message, bot: Bot, state: FSMContext
+    message: types.Message, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles juror authorization based on input code.
@@ -49,11 +50,16 @@ async def frontend_st_re_process_code(
     # Save user message
     await re_add_auth_message(state, message.message_id)
 
-    juror = await re_check_access_code(code)
+    # Pass the db instance to re_check_access_code
+    is_chairman = await re_check_access_code(db, code)
+    logging.info(f"is_chairman: {is_chairman}")
 
-    if juror:
+    if is_chairman is not None:
         await state.set_state(REAuthStates.authorized)
-        await state.update_data(auth_code=code, auth_attempts=0)
+        # Store both auth_code and the is_chairman status
+        await state.update_data(
+            auth_code=code, auth_attempts=0, is_chairman=is_chairman
+        )
 
         caption, keyboard = re_get_auth_continue_keyboard(lang)
 
@@ -74,11 +80,8 @@ async def frontend_st_re_process_code(
         # Check if the number of attempts more than 3
         if attempts >= 3:
             await re_delete_auth_messages(state, message.chat.id, bot)
-
             await state.clear()
-
             caption, keyboard = re_get_auth_main_menu_keyboard(lang)
-
             await message.answer(
                 text=caption,
                 reply_markup=keyboard,

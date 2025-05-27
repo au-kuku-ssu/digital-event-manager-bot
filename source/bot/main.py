@@ -18,6 +18,7 @@ import components.reports_evaluation.router as reports_evaluation
 
 from components.shared.db import Database
 from middlewares.db import DatabaseMiddleware
+from database.init_db import init_db
 
 
 async def main() -> None:
@@ -37,9 +38,7 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     load_dotenv(dotenv_dir)
 
-    db_path = join(
-        dirname(__file__), "database", "instance", "digital_event_manager.db"
-    )
+    db_path = init_db()
     db = Database(db_path).connect()
 
     bot = Bot(

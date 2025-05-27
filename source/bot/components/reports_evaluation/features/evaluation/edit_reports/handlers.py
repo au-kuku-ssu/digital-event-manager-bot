@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 
 from aiogram.types import CallbackQuery
 
-from components.reports_evaluation.data.placeholder_jury import PLACEHOLDER_JURY
 from components.reports_evaluation.data.placeholder_presentations import (
     PLACEHOLDER_PRESENTS,
 )
@@ -16,11 +15,12 @@ from components.reports_evaluation.features.evaluation.keyboards import (
     re_get_error_keyboard,
 )
 from components.reports_evaluation.utils import getstr, re_require_auth
+from components.shared.db import Database
 
 
 @re_require_auth
 async def frontend_cb_re_edit_results(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles the callback query to display the results editing interface.
@@ -36,7 +36,7 @@ async def frontend_cb_re_edit_results(
     auth_code = state_data["auth_code"]
 
     # Check if chair
-    is_chairman = PLACEHOLDER_JURY.get(auth_code, {}).get("role") == "chair"
+    is_chairman = await db.get_jury_role_by_access_key(auth_code)
 
     if not is_chairman:
         caption_err, keyboard_err = re_get_error_keyboard(lang, "not chairman")
@@ -46,14 +46,14 @@ async def frontend_cb_re_edit_results(
         )
         return
 
-    caption, keyboard = re_get_edit_results_keyboard(lang, PLACEHOLDER_JURY)
+    caption, keyboard = await re_get_edit_results_keyboard(lang, db)
 
     await callback_query.message.edit_text(text=caption, reply_markup=keyboard)
 
 
 @re_require_auth
 async def frontend_cb_re_edit_select_jury(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles jury selection during result editing by the chairman.
@@ -69,7 +69,8 @@ async def frontend_cb_re_edit_select_jury(
     jury_code = callback_query.data.split(":")[1]
     wrong_code = False
 
-    if jury_code not in PLACEHOLDER_JURY:
+    juries = await db.get_all_juries_with_names()
+    if jury_code not in [jury[0] for jury in juries]:
         wrong_code = True
     else:
         await state.update_data(jury_code=jury_code)
@@ -81,7 +82,7 @@ async def frontend_cb_re_edit_select_jury(
 
 @re_require_auth
 async def frontend_cb_re_edit_show_presentations(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Displays the list of presentations for result editing by the chairman.

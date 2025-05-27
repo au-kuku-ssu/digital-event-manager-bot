@@ -8,7 +8,7 @@ from components.reports_evaluation.utils import getstr
 def re_get_results_table_keyboard(
     lang: str,
     presentations: list[dict],
-    jury_data: dict[str, dict],
+    juries: list[tuple[str, str, str]],
     page: int = 0,
     per_page: int = 5,
 ):
@@ -28,9 +28,9 @@ def re_get_results_table_keyboard(
         comment_lines = []
 
         table_lines = []
-        for jury_code, jury_info in jury_data.items():
-            name = jury_info["name"]
-            scores = jury_scores.get(jury_code, {})
+        for jury in juries:
+            name = f"{jury[1]} {jury[2]}"
+            scores = jury_scores.get(jury[0], {})
             score_values = [
                 str(scores.get(criterion, "-")).rjust(3) for criterion in EVAL_CRITERIA
             ]
@@ -40,9 +40,10 @@ def re_get_results_table_keyboard(
             table_lines.append(line)
 
         # Collect comments
-        for jury_code, comment in pres.get("comments", {}).items():
+        for jury in juries:
+            comment = pres.get("comments", {}).get(jury[0], "")
             if comment and comment.strip():
-                jury_name = jury_data.get(jury_code, {}).get("name", jury_code)
+                jury_name = f"{jury[1]} {jury[2]}"
                 comment_lines.append(f"💬 <i>{jury_name}</i>: {comment.strip()}")
 
         return (

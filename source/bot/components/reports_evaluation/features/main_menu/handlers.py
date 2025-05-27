@@ -2,7 +2,6 @@ from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from components.reports_evaluation.data.placeholder_jury import PLACEHOLDER_JURY
 from components.reports_evaluation.features.main_menu.keyboards import (
     re_get_main_menu_keyboard,
     re_get_return_to_main_menu_keyboard,
@@ -12,11 +11,12 @@ from components.reports_evaluation.utils import (
     re_delete_auth_messages,
     getstr,
 )
+from components.shared.db import Database
 
 
 @re_require_auth
 async def frontend_cb_re_main_menu(
-    callback_query: CallbackQuery, bot: Bot, state: FSMContext
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     """
     Handles showing main menu of reports evaluation.
@@ -35,7 +35,7 @@ async def frontend_cb_re_main_menu(
         jury_code=auth_code, pres_id=None, scores=None, pres_comments=None
     )
 
-    jury_name = PLACEHOLDER_JURY[auth_code]["name"]
+    jury_name = await db.get_jury_name_by_access_key(auth_code)
 
     keyboard = re_get_main_menu_keyboard(lang)
     await callback_query.message.edit_text(

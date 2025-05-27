@@ -1,9 +1,10 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from components.reports_evaluation.utils import getstr
+from components.shared.db import Database
 
 
-def re_get_edit_results_keyboard(lang: str, jury: dict):
+async def re_get_edit_results_keyboard(lang: str, db: Database):
     """
     Generates a keyboard for the chairman to select a jury member for result editing.
 
@@ -16,9 +17,10 @@ def re_get_edit_results_keyboard(lang: str, jury: dict):
 
     keyboard = InlineKeyboardBuilder()
 
-    for jury_code, jury_info in jury.items():
-        name = jury_info.get("name", "Unnamed")
-        callback_data = f"cb_re_edit_select_jury:{jury_code}"
+    juries = await db.get_all_juries_with_names()
+    for jury in juries:
+        name = f"{jury[1]} {jury[2]}"
+        callback_data = f"cb_re_edit_select_jury:{jury[0]}"
         keyboard.button(text=name, callback_data=callback_data)
     keyboard.adjust(1)
 
