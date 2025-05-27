@@ -37,7 +37,9 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     load_dotenv(dotenv_dir)
 
-    db_path = join(dirname(__file__), "database", "instance", "digital_event_manager.db")
+    db_path = join(
+        dirname(__file__), "database", "instance", "digital_event_manager.db"
+    )
     db = Database(db_path).connect()
 
     bot = Bot(
@@ -46,8 +48,8 @@ async def main() -> None:
     )
     dp = Dispatcher()
 
-    dp.message.middleware(DatabaseMiddleware(db))
-    dp.callback_query.middleware(DatabaseMiddleware(db))
+    dp.message.middleware(DatabaseMiddleware(db, "message"))
+    dp.callback_query.middleware(DatabaseMiddleware(db, "callback_query"))
 
     dp.include_routers(*component_routers)
 
