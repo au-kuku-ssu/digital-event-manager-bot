@@ -20,6 +20,7 @@ from components.reports_evaluation.features.evaluation.handlers import (
     frontend_st_re_eval_comment,
     frontend_cb_re_eval_marks_accepted,
     frontend_cb_re_eval_back_to_summary,
+    frontend_cb_re_chair_initiate_edit,
 )
 from components.reports_evaluation.features.main_menu.handlers import (
     frontend_cb_re_main_menu,
@@ -150,6 +151,17 @@ async def cb_re_eval_back_to_summary(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     await frontend_cb_re_eval_back_to_summary(callback_query, bot, state, db)
+
+
+# Handler for chair initiating an edit
+@router.callback_query(F.data.startswith("cb_re_chair_edit_init:"))
+async def cb_re_chair_initiate_edit(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
+) -> None:
+    """
+    Triggers the start of a chairperson editing another juror's scores.
+    """
+    await frontend_cb_re_chair_initiate_edit(callback_query, bot, state, db)
 
 
 # Results table

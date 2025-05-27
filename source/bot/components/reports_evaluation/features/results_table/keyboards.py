@@ -10,54 +10,65 @@ def re_get_results_table_keyboard(
     presentations_from_db: list[dict],
     page: int = 0,
     per_page: int = 5,
+    is_chairman: bool = False,
 ):
     """
     Returns a caption with the results table and navigation keyboard.
     Displays speakers, topic, individual jury scores (or "-"), and comments from DB data.
+    If is_chairman is True, adds edit buttons for each juror's scores.
     """
 
     def format_presentation(pres: dict, idx: int) -> str:
         speakers = ", ".join(pres.get("speakers", ["N/A"]))
         topic = pres.get("topic", "N/A")
-        # Overall final_score for the presentation, calculated in the DB method
         final_score_display = pres.get("final_score", "-")
+        presentation_id = pres.get("id")
 
         table_lines = []
         comment_lines = []
-        unique_jurors_for_header = [] # To build the header dynamically if needed, or use a fixed list
+        edit_buttons_for_chairman = InlineKeyboardBuilder()
 
-        # pres["jury_evaluations"] contains all evaluations for this presentation
         for evaluation in pres.get("jury_evaluations", []):
             juror_name = evaluation.get("juror_name", "Unknown Juror")
-            # juror_access_key = evaluation.get("juror_access_key") # Available if needed
-            juror_scores = evaluation.get("scores", {}) # Dict of criteria:score
+            juror_access_key = evaluation.get("juror_access_key")
+            juror_scores = evaluation.get("scores", {})
             juror_comment = evaluation.get("comment", "")
-            # juror_specific_final_score = evaluation.get("juror_final_score", "-") # Final score by this juror
+            juror_specific_final_score = evaluation.get("juror_final_score", "-")
 
-            # Prepare score values for table line
             score_values = [
                 str(juror_scores.get(criterion, "-")).rjust(3) for criterion in EVAL_CRITERIA
             ]
-            # Add the juror's own total for this presentation
-            score_values.append(str(evaluation.get("juror_final_score", "-")).rjust(3))
+            score_values.append(str(juror_specific_final_score).rjust(3))
 
             line = f"{juror_name:<25} | " + " ".join(score_values)
+            if is_chairman and juror_access_key and presentation_id:
+                edit_button_text = f"Edit {juror_name.split()[0]}'s scores"
+                edit_callback_data = f"cb_re_chair_edit_init:{presentation_id}:{juror_access_key}"
+                line += f" (✏️)"
+
             table_lines.append(line)
 
             if juror_comment and juror_comment.strip():
                 comment_lines.append(f"💬 <i>{juror_name}</i>: {juror_comment.strip()}")
 
-            if juror_name not in unique_jurors_for_header:
-                unique_jurors_for_header.append(juror_name)
+        if is_chairman and presentation_id:
+            for evaluation in pres.get("jury_evaluations", []):
+                juror_name = evaluation.get("juror_name", "Unknown Juror")
+                juror_access_key = evaluation.get("juror_access_key")
+                if juror_access_key:
+                    edit_buttons_for_chairman.button(
+                        text=f"Edit {juror_name}",
+                        callback_data=f"cb_re_chair_edit_init:{presentation_id}:{juror_access_key}"
+                    )
+            if pres.get("jury_evaluations"):
+                edit_buttons_for_chairman.adjust(1)
 
-        # Header for the score table - uses EVAL_CRITERIA + a "Fin" for juror's total
         criteria_header_short = " ".join([crit[:3].upper() for crit in EVAL_CRITERIA]) + " FIN"
         header_line = f"{'Jury Member':<25} | {criteria_header_short}"
-        # Fallback if no evaluations for this presentation
-        if not table_lines:
+        if not pres.get("jury_evaluations", []):
             table_lines.append(f"{'No scores submitted yet.':<25}")
 
-        return (
+        formatted_text = (
             f"<b>#{idx}</b> | {speakers}\n"
             f"<b>{topic}</b>\n"
             f"<b>{getstr(lang, 'reports_evaluation.results_table.final_score')}:</b> {final_score_display}\n"
@@ -67,12 +78,13 @@ def re_get_results_table_keyboard(
             + ("\n".join(comment_lines) if comment_lines else "")
         ).strip()
 
-    # Sort by final_score descending (or push empty/non-numeric to the end)
+        return formatted_text, edit_buttons_for_chairman
+
     def sort_key(p):
         fs = p.get("final_score")
         if isinstance(fs, (int, float)):
             return -fs
-        return float("inf") # Non-numeric or missing scores go to the end
+        return float("inf")
 
     sorted_presentations = sorted(presentations_from_db, key=sort_key)
 
@@ -81,23 +93,27 @@ def re_get_results_table_keyboard(
 
     start = page * per_page
     end = start + per_page
-    current_presentations = sorted_presentations[start:end]
+    current_presentations_on_page = sorted_presentations[start:end]
 
-    caption_lines = [
-        format_presentation(p, idx + 1)
-        for idx, p in enumerate(current_presentations, start=start)
-    ]
-
-    caption = (
-        f"<b>{getstr(lang, 'reports_evaluation.results_table.caption')}</b>\n\n"
+    caption_parts = [
+        f"<b>{getstr(lang, 'reports_evaluation.results_table.caption')}</b>\n\n",
         f"<i>{getstr(lang, 'reports_evaluation.results_table.header_hint')}</i>\n\n"
-        + "\n\n".join(caption_lines)
-        or getstr(lang, "reports_evaluation.results_table.empty")
-    )
+    ]
+    
+    if not current_presentations_on_page:
+        caption_parts.append(getstr(lang, "reports_evaluation.results_table.empty"))
+    else:
+        overall_keyboard_builder = InlineKeyboardBuilder()
+        for i, p_data in enumerate(current_presentations_on_page, start=start):
+            presentation_text, presentation_edit_buttons_builder = format_presentation(p_data, i + 1)
+            caption_parts.append(presentation_text)
+            for row in presentation_edit_buttons_builder.export():
+                overall_keyboard_builder.row(*row)            
+            caption_parts.append("\n")
 
-    keyboard = InlineKeyboardBuilder()
+    caption = "\n".join(caption_parts).strip()
+
     nav_buttons = []
-
     if page > 0:
         nav_buttons.append(
             types.InlineKeyboardButton(
@@ -113,13 +129,13 @@ def re_get_results_table_keyboard(
             )
         )
     if nav_buttons:
-        keyboard.row(*nav_buttons)
+        overall_keyboard_builder.row(*nav_buttons)
 
-    keyboard.row(
+    overall_keyboard_builder.row(
         types.InlineKeyboardButton(
             text=getstr(lang, "reports_evaluation.menu.back"),
             callback_data="cb_re_main_menu",
         )
     )
 
-    return caption, keyboard.as_markup()
+    return caption, overall_keyboard_builder.as_markup()

@@ -24,11 +24,14 @@ async def frontend_cb_re_results_table(
 
     page = int(callback_query.data.split(":")[1])
 
+    data = await state.get_data()
+    is_chairman = data.get("is_chairman", False)
+
     # Fetch comprehensive presentation data including scores and juror details
     presentations_from_db = await db.get_presentations_with_scores_and_details()
 
     caption, keyboard = re_get_results_table_keyboard(
-        lang, presentations_from_db, page=page
+        lang, presentations_from_db, page=page, is_chairman=is_chairman
     )
 
     await callback_query.message.edit_text(

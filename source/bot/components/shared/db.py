@@ -90,10 +90,14 @@ class Database:
             return []
 
     async def save_score(
-        self, jury_id: int, participant_id: int, criterion: str, value: float
+        self, jury_id: int, participant_id: int, criterion: str, value: float,
+        editor_jury_id: Optional[int] = None, is_chair_edit: bool = False
     ) -> None:
-        """Saves or updates a score for a given criterion."""
+        """Saves or updates a score for a given criterion.
+           If is_chair_edit is True, logs the change and editor_jury_id must be provided.
+        """
         criterion_column = f"{criterion}_criteria"
+        jury_scores_row_id = None
         try:
             self.cursor.execute(
                 "SELECT id FROM jury_scores WHERE jury_id = ? AND participant_id = ?",
@@ -101,9 +105,10 @@ class Database:
             )
             row = self.cursor.fetchone()
             if row:
+                jury_scores_row_id = row[0]
                 self.cursor.execute(
-                    f"UPDATE jury_scores SET {criterion_column} = ? WHERE jury_id = ? AND participant_id = ?",
-                    (value, jury_id, participant_id),
+                    f"UPDATE jury_scores SET {criterion_column} = ? WHERE id = ?",
+                    (value, jury_scores_row_id),
                 )
             else:
                 criteria_columns = [
@@ -117,25 +122,32 @@ class Database:
                     col: 0.0 for col in criteria_columns
                 }  # Initialize with 0.0 for REAL type
                 values_dict[criterion_column] = value
-
-                # Ensure comment column is handled if it's NOT NULL without a default in your schema
-                # For now, assuming it can be NULL or has a default.
-                columns_str = ", ".join(
-                    ["jury_id", "participant_id"] + criteria_columns
-                )
+                
+                columns_str = ", ".join(["jury_id", "participant_id"] + criteria_columns)
                 placeholders_str = ", ".join(["?"] * (2 + len(criteria_columns)))
                 insert_values = [jury_id, participant_id] + [
                     values_dict[col] for col in criteria_columns
                 ]
-
+                
                 self.cursor.execute(
-                    f"INSERT INTO jury_scores ({columns_str}) VALUES ({placeholders_str})",
+                    f"INSERT INTO jury_scores ({columns_str}) VALUES ({placeholders_str}) RETURNING id",
                     insert_values,
                 )
+                inserted_row = self.cursor.fetchone()
+                if inserted_row:
+                    jury_scores_row_id = inserted_row[0]
+            
             self.conn.commit()
             logger.info(
                 f"Score saved/updated for jury {jury_id}, participant {participant_id}, criterion {criterion}."
             )
+
+            # Log change if it's a chair edit
+            if is_chair_edit and editor_jury_id is not None and jury_scores_row_id is not None:
+                await self._log_score_change(jury_scores_row_id, editor_jury_id)
+            elif is_chair_edit and (editor_jury_id is None or jury_scores_row_id is None):
+                logger.warning("Chair edit indicated but editor_jury_id or jury_scores_row_id missing. Change not logged.")
+
         except sqlite3.Error as e:
             logger.error(f"SQL error in save_score: {e}")
             self.conn.rollback()
@@ -225,6 +237,22 @@ class Database:
         except sqlite3.Error as e:
             logger.error(f"SQL error in update_comment: {e}")
             self.conn.rollback()
+
+    async def _log_score_change(self, jury_scores_row_id: int, chairman_jury_id: int) -> None:
+        """Logs a change to a score in the jury_scores_changes table."""
+        try:
+            self.cursor.execute(
+                "INSERT INTO jury_scores_changes (jury_scores_id, jury_id) VALUES (?, ?)",
+                (jury_scores_row_id, chairman_jury_id)
+            )
+            self.conn.commit()
+            logger.info(f"Score change logged for jury_scores_id {jury_scores_row_id} by chairman_jury_id {chairman_jury_id}.")
+        except sqlite3.Error as e:
+            logger.error(f"SQL error in _log_score_change: {e}")
+            # Not rolling back here as this is a secondary logging action.
+            # The main score save should have already committed or rolled back.
+            # However, if this logging is critical, a rollback might be considered, 
+            # but it would complicate the atomicity with save_score.
 
     async def get_presentations_with_scores_and_details(self) -> list[dict]:
         """Fetches all presentations (participants) with their scores, comments, and juror details."""

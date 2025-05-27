@@ -73,7 +73,7 @@ async def frontend_cb_re_edit_select_jury(
     if jury_code not in [jury[0] for jury in juries]:
         wrong_code = True
     else:
-        await state.update_data(jury_code=jury_code)
+        await state.update_data(editing_target_access_key=jury_code)
 
     caption, keyboard = re_get_select_jury_keyboard(lang, wrong_code)
 

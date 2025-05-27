@@ -1,5 +1,6 @@
 from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
+import logging
 
 from aiogram.types import CallbackQuery
 
@@ -128,42 +129,61 @@ async def frontend_cb_re_eval_handle_score(
 
     data = await state.get_data()
     current_pres_id = data.get("pres_id")
-    auth_code = data.get("auth_code") # Corrected from jury_code
+    actor_auth_code = data.get("auth_code") 
+    actor_is_chairman = data.get("is_chairman", False)
 
-    if not current_pres_id or not auth_code:
-        # Clear all evaluation-related state data if essential IDs are missing
+    # --- Chair Edit Mode Logic ---
+    editing_target_access_key = data.get("editing_target_access_key", None)
+    # --- End Chair Edit Mode Logic ---
+
+    if not current_pres_id or not actor_auth_code:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
         caption_err, keyboard_err = re_get_error_keyboard(lang, "no current pres id or auth code")
-        await callback_query.message.edit_text(
-            text=caption_err,
-            reply_markup=keyboard_err,
-        )
+        await callback_query.message.edit_text(text=caption_err, reply_markup=keyboard_err)
         return
 
-    jury_id = await db.get_jury_id_by_access_key(auth_code)
-    if not jury_id:
-        await state.update_data(scores=None, pres_id=None, pres_comments=None) # Clear sensitive data
-        caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
-        await callback_query.message.edit_text(
-            text=caption_err,
-            reply_markup=keyboard_err,
-        )
+    actor_jury_id = await db.get_jury_id_by_access_key(actor_auth_code)
+    if not actor_jury_id:
+        await state.update_data(scores=None, pres_id=None, pres_comments=None)
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "actor jury id not found")
+        await callback_query.message.edit_text(text=caption_err, reply_markup=keyboard_err)
         return
 
-    # Convert pres_id to int, as it's likely stored as str from callback_data
+    target_jury_id_for_score = actor_jury_id
+    editor_jury_id_for_log = None
+    is_effective_chair_edit = False
+
+    if actor_is_chairman and editing_target_access_key:
+        if editing_target_access_key == actor_auth_code:
+            # Chairman editing their own scores, not a "chair edit" in the special sense
+            pass # target_jury_id_for_score is already actor_jury_id
+        else:
+            # Chairman is editing another juror's scores
+            target_juror_id_being_edited = await db.get_jury_id_by_access_key(editing_target_access_key)
+            if not target_juror_id_being_edited:
+                caption_err, keyboard_err = re_get_error_keyboard(lang, "target juror for edit not found")
+                await callback_query.message.edit_text(text=caption_err, reply_markup=keyboard_err)
+                return
+            target_jury_id_for_score = target_juror_id_being_edited
+            editor_jury_id_for_log = actor_jury_id # The chairman is the editor
+            is_effective_chair_edit = True
+
     try:
         participant_id = int(current_pres_id)
     except ValueError:
-        # Handle error if pres_id is not a valid integer
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
         caption_err, keyboard_err = re_get_error_keyboard(lang, "invalid pres id format")
-        await callback_query.message.edit_text(
-            text=caption_err,
-            reply_markup=keyboard_err,
-        )
+        await callback_query.message.edit_text(text=caption_err, reply_markup=keyboard_err)
         return
     
-    await db.save_score(jury_id, participant_id, criterion, float(value))
+    await db.save_score(
+        jury_id=target_jury_id_for_score, 
+        participant_id=participant_id, 
+        criterion=criterion, 
+        value=float(value),
+        editor_jury_id=editor_jury_id_for_log,
+        is_chair_edit=is_effective_chair_edit
+    )
 
     try:
         current_criterion_idx = EVAL_CRITERIA.index(criterion)
@@ -264,6 +284,7 @@ async def frontend_re_eval_finalize_score(
     data = await state.get_data()
     pres_id = data.get("pres_id")
     auth_code = data.get("auth_code")
+    editing_target_access_key = data.get("editing_target_access_key", None)
 
     if not pres_id or not auth_code:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
@@ -274,7 +295,11 @@ async def frontend_re_eval_finalize_score(
         )
         return
     
-    jury_id = await db.get_jury_id_by_access_key(auth_code)
+    if editing_target_access_key:
+        jury_id = await db.get_jury_id_by_access_key(editing_target_access_key)
+    else:
+        jury_id = await db.get_jury_id_by_access_key(auth_code)
+
     if not jury_id:
         await state.update_data(scores=None, pres_id=None, pres_comments=None)
         caption_err, keyboard_err = re_get_error_keyboard(lang, "jury id not found")
@@ -480,4 +505,53 @@ async def frontend_cb_re_eval_back_to_summary(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
 ) -> None:
     await state.set_state(None)
+    # When returning to summary, ensure chair edit mode is cleared if it was active
+    await state.update_data(editing_target_access_key=None)
     await frontend_re_eval_finalize_score(callback_query, bot, state, db)
+
+
+@re_require_auth
+async def frontend_cb_re_chair_initiate_edit(
+    callback_query: CallbackQuery, bot: Bot, state: FSMContext, db: Database
+) -> None:
+    """Handles a chairperson initiating an edit of another juror's scores."""
+    lang = "ru" # Assuming lang, can be fetched or passed if needed
+    
+    data = await state.get_data()
+    actor_is_chairman = data.get("is_chairman", False)
+
+    if not actor_is_chairman:
+        await callback_query.answer("Error: Only chairpersons can edit scores.", show_alert=True)
+        return
+
+    try:
+        _, pres_id_str, target_juror_access_key = callback_query.data.split(":")
+        pres_id = int(pres_id_str)
+    except ValueError:
+        await callback_query.answer("Error: Invalid callback data for edit.", show_alert=True)
+        return
+
+    # Set FSM state for chair editing mode
+    await state.update_data(
+        editing_target_access_key=target_juror_access_key,
+        pres_id=str(pres_id) # Ensure pres_id is stored consistently (as string like other places)
+    )
+
+    # Navigate to the first criterion for editing
+    # This assumes the evaluation flow starts with the first criterion in EVAL_CRITERIA
+    first_criterion = EVAL_CRITERIA[0] if EVAL_CRITERIA else None
+    if not first_criterion:
+        # Handle error: No criteria defined
+        caption_err, keyboard_err = re_get_error_keyboard(lang, "no criterion available")
+        await callback_query.message.edit_text(text=caption_err, reply_markup=keyboard_err)
+        return
+
+    # Note: re_get_criterion_keyboard might need to be aware of the edit mode 
+    # to potentially show existing scores of the target_juror for this pres_id and first_criterion.
+    # For now, it will just show a blank scoring slate.
+    caption, keyboard = re_get_criterion_keyboard(lang, str(pres_id), first_criterion)
+    
+    await callback_query.message.edit_text(
+        text=caption,
+        reply_markup=keyboard,
+    )
