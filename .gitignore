@@ -7,3 +7,5 @@ __pycache__
 
 source/bot/database/instance/*.db
 *~
+
+**/.terraform/*
