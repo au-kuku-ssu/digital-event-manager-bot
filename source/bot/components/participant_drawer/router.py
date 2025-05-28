@@ -1,13 +1,14 @@
 from aiogram import Bot, Router, types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from components.participant_drawer.features.activities import activity_router
-from components.participant_drawer.prefixes import ACTIVITIES_PREFIX, PREFIX
+from components.participant_drawer.features.applicationsService import applications_router
+from components.participant_drawer.prefixes import ACTIVITIES_PREFIX, PREFIX, APPLICATION_PREFIX
 from components.participant_drawer.tools import getstr
 
 
 def unite_routers() -> Router:
     router = Router()
-    router.include_routers(activity_router)
+    router.include_routers(activity_router, applications_router)
     return router
 
 
@@ -25,6 +26,10 @@ async def cb_pd_main_menu(callback_query: types.CallbackQuery, bot: Bot) -> None
     keyboard.button(
         text=getstr(lang, "participant_drawer.activities.caption"),
         callback_data=f"{ACTIVITIES_PREFIX}main",
+    )
+    keyboard.button(
+      text=getstr(lang, "participant_drawer.applications.caption"),
+      callback_data=f"{APPLICATION_PREFIX}"
     )
 
     keyboard.adjust(1)
