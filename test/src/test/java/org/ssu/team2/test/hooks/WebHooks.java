@@ -20,10 +20,10 @@ public class WebHooks {
         Configuration.pageLoadStrategy = PageLoadStrategy.NORMAL.toString();
         Configuration.timeout = 15000;
 
-        SelenideLogger.addListener("AllureSelenide", new AllureSelenide()
-            .screenshots(true)
-            .savePageSource(true)
-        );
+        SelenideLogger.addListener("AllureSelenide",
+            new AllureSelenide()
+                .screenshots(true)
+                .savePageSource(false));
 
         Selenide.open(props.baseUrl());
         WebDriver driver = WebDriverRunner.getWebDriver();
