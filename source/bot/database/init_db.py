@@ -27,26 +27,33 @@ def _seed_data(cursor: sqlite3.Cursor, conn: sqlite3.Connection):
     default_university_id = uni_row[0]
 
     JURY_PEOPLE = {
-        "bob_key": {
-            "role": "jury",
-            "first_name": "Bob",
-            "last_name": "Smith",
-            "email": "bob.smith@gmail.com",
-            "tg_name": "bob_smith",
-        },
-        "alice_key": {
+        "sv": {
             "role": "chair",
-            "first_name": "Alice",
-            "last_name": "Johnson",
-            "email": "alice.johnson@gmail.com",
-            "tg_name": "alice_johnson",
+            "first_name": "Сергей",
+            "last_name": "Миронов",
+            "email": "sergey.mironov@gmail.com",
+            "tg_name": "smironov",
         },
-        "charlie_key": {
+        "herman_key": {
             "role": "jury",
-            "first_name": "Charlie",
-            "last_name": "Brown",
-            "email": "charlie.brown@gmail.com",
-            "tg_name": "charlie_brown",
+            "first_name": "Герман",
+            "last_name": "Наркайтис",
+            "email": "herman.narakaitis@gmail.com",
+            "tg_name": "hnarakaitis",
+        },
+        "alexander_key": {
+            "role": "jury",
+            "first_name": "Александр",
+            "last_name": "Сергеев",
+            "email": "alexander.sergeev@gmail.com",
+            "tg_name": "asergeev",
+        },
+        "daria_key": {
+            "role": "jury",
+            "first_name": "Дарья",
+            "last_name": "Сергеева",
+            "email": "daria.sergeeva@gmail.com",
+            "tg_name": "dsergeeva",
         },
     }
 
@@ -103,16 +110,44 @@ def _seed_participants_and_dependencies(
     logging.info("Seeding participant dependencies and participants...")
 
     # 1. Seed People for Participants (if they don't exist)
-    participant_people_data = []
-    for i in range(1, 12):  # For 11 participants
-        participant_people_data.append(
-            {
-                "first_name": f"ParticipantFirst{i}",
-                "last_name": f"ParticipantLast{i}",
-                "email": f"participant{i}@example.com",
-                "tg_name": f"participant_tg_{i}",
-            }
-        )
+    participant_people_data = [
+        {
+            "first_name": "Александр",
+            "last_name": "Петров",
+            "email": "a.petrov@student.university.edu",
+            "tg_name": "alex_petrov",
+        },
+        {
+            "first_name": "Михаил",
+            "last_name": "Морозов",
+            "email": "m.morozov@student.university.edu",
+            "tg_name": "mikhail_m",
+        },
+        {
+            "first_name": "Владимир",
+            "last_name": "Лебедев",
+            "email": "v.lebedev@student.university.edu",
+            "tg_name": "vladimir_leb",
+        },
+        {
+            "first_name": "Ольга",
+            "last_name": "Новикова",
+            "email": "o.novikova@student.university.edu",
+            "tg_name": "olga_nov",
+        },
+        {
+            "first_name": "Юлия",
+            "last_name": "Соколова",
+            "email": "y.sokolova@student.university.edu",
+            "tg_name": "julia_sokol",
+        },
+        {
+            "first_name": "Сергей",
+            "last_name": "Романов",
+            "email": "s.romanov@student.university.edu",
+            "tg_name": "sergey_rom",
+        },
+    ]
 
     participant_person_ids = []
     for pp_data in participant_people_data:
@@ -226,7 +261,7 @@ def _seed_participants_and_dependencies(
 
     # 3. Seed Participants with explicit IDs 1-11
     # This matches PLACEHOLDER_PRESENTS
-    for i in range(1, 12):
+    for i in range(len(participant_person_ids)):
         participant_id_to_insert = i
         person_id_for_participant = participant_person_ids[
             i - 1
