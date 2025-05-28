@@ -10,5 +10,16 @@ ru:
       caption: Мероприятия
       committee: 
         caption: Оргкомитет
+        add: Добавить
+        edit: Редактироватьв
+        get: Посмотреть
+        full_name: ФИО
+        degree: Степень
+        title: Должность
+        position: Позиция
+        contact_info: Контактная информация
+        break: Остановить
+        reject: Отклонить
+        accept: Подтвердить
         back: ⬅️ Назад
       back: ⬅️ Назад

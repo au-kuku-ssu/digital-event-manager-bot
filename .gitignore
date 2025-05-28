@@ -3,6 +3,8 @@
 __pycache__
 
 *.swp
+
+source/bot/database/instance/*.db
 test.py
 test2.py
 ex.py

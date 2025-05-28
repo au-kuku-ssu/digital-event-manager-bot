@@ -13,7 +13,11 @@ class Database:
             print(f"Database error: {e}")
             raise
 
-    def rows_to_dicts(col_names: list[str], rows: list[tuple]) -> list[dict]:
+    def table_cols(db, table: str) -> list[str]:
+        sql = f"SELECT c.name FROM pragma_table_info('{table}') as c;"
+        return list(map(lambda row: row[0], Database.select(sql)))
+    
+    def rows_to_dicts(col_names: list[str], rows: list[tuple]) -> list[dict[str, Any]]:
         data = []
         for row in rows:
             dict_row = {col: val for val, col in zip(row, col_names)}
@@ -90,7 +94,7 @@ class Database:
             
         query += ";"
         
-        return rows_to_dicts(columns, db.execute(query, params))
+        return Database.rows_to_dicts(columns, db.execute(query, params))
     
     def select_one(db, table: str, columns: Union[List[str], str] = "*", 
                   where: Optional[str] = None, params: tuple = ()) -> Optional[Dict]:
