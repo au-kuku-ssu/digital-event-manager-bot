@@ -165,9 +165,12 @@ async def cb_pd_application_edit_choose_field(message: Message, bot: Bot, state:
     try:
         app_id = int(message.text)
         # Здесь должна быть проверка существования заявки в БД
-        id_list = await db.get_data(['id'])
+        # id_list = await db.get_data(['id'])
 
-        id_exists = any(value.get("name") == app_id for value in id_list)
+        # Заглушка с тестовыми данными
+        id_list = [{"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}]
+
+        id_exists = any(value.get("id") == app_id for value in id_list)
         if id_exists:
             kb = kb_change_app()
 
@@ -203,6 +206,31 @@ async def cb_pd_application_edit_finish(message: Message, bot: Bot, state: FSMCo
 
     # Здесь должна быть логика обновления в БД
     # await db.update_app_field(app_id, field, new_value)
+
+    # Заглушка с тестовыми данными
+    applications = [
+      {"id": 1, "name": "Иван Иванов", "event": "Конференция AI", "section": "Тестовая секция №1",
+       "presentation_topic": "Фурье-преобразование", "faculty": "фКНиИТ", "degree": "магистр 1 курса",
+       "teacher": "Сергеев Сергей Сергеевич", "has_translator_education": "Есть", "is_translator_participate": "Нет",
+       "english_book": "Choices Upper Intermediate", "email": "ivan@example.com"},
+      {"id": 2, "name": "Петр Петров", "event": "Воркшоп Python", "section": "Тестовая секция №1",
+       "presentation_topic": "Терагерцовое излучение", "faculty": "Инфиз", "degree": "магистр 2 курса",
+       "teacher": "Сергеев Сергей Сергеевич", "has_translator_education": "Есть", "is_translator_participate": "Нет",
+       "english_book": "Choices Upper Intermediate","email": "petr@example.com"},
+      {"id": 3, "name": "Сергей Иванов", "event": "Конференция AI", "section": "Тестовая секция №1",
+       "presentation_topic": "Фурье-преобразование", "faculty": "фКНиИТ", "degree": "магистр 1 курса",
+       "teacher": "Сергеев Сергей Сергеевич", "has_translator_education": "Есть", "is_translator_participate": "Нет",
+       "english_book": "Choices Upper Intermediate","email": "sergei@example.com"},
+      {"id": 4, "name": "Алексей Петров", "event": "Воркшоп Python", "section": "Тестовая секция №1",
+       "presentation_topic": "Терагерцовое излучение", "faculty": "Инфиз", "degree": "магистр 2 курса",
+       "teacher": "Сергеев Сергей Сергеевич", "has_translator_education": "Есть", "is_translator_participate": "Нет",
+       "english_book": "Choices Upper Intermediate","email": "alexei@example.com"}
+    ]
+
+    for app in applications:
+        if app.get("id") == app_id:
+            app[f"{field}"] = new_value
+            break
 
     await message.answer(f"""
         Заявка #{app_id} обновлена:\n
