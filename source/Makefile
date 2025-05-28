@@ -11,6 +11,9 @@ install:
 	uv sync
 	uv run pre-commit install
 
+init:
+	uv run bot/database/init_db.py
+
 run:
 	uv run bot/main.py
 

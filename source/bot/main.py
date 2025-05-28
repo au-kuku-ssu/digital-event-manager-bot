@@ -26,6 +26,7 @@ async def main() -> None:
     """
 
     dotenv_dir = join(dirname(__file__), "..", ".env")
+
     component_routers = [
         main_menu.router,
         participant_drawer.router,
@@ -41,7 +42,7 @@ async def main() -> None:
     db = Database(db_path).connect()
 
     bot = Bot(
-        token=os.environ.get("TG_BOT_TOKEN"),
+        token=os.getenv("TG_BOT_TOKEN"),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()

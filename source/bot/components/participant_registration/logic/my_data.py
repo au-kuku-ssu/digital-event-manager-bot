@@ -28,12 +28,6 @@ shared = "participant_registration.shared"
 
 EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w+$"
 VERIFICATION_CODES = {}
-SMTP_SERVER = os.environ.get("SMTP_SERVER")
-SMTP_PORT = int(os.environ.get("SMTP_PORT"))
-SMTP_USERNAME = os.environ.get("SMTP_USERNAME")
-SMTP_PASSWORD = os.environ.get("TG_BOT_EMAIL_PASSWORD")
-EMAIL_FROM = os.environ.get("TG_BOT_EMAIL")
-
 
 def getstr(lang, prefix, path):
     return get_locale_str(locale, f"{lang}.{prefix}.{path}")
@@ -202,8 +196,8 @@ async def send_verification_email(email: str, code: str, lang: str):
     msg['To'] = email
 
     try:
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        with smtplib.SMTP_SSL(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT"))) as server:
+            server.login(os.getenv("SMTP_USERNAME"), os.getenv("TG_BOT_EMAIL_PASSWORD"))
             server.send_message(msg)
         return True
     except Exception as e:
