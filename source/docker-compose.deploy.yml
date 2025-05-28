@@ -9,6 +9,7 @@ services:
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
   loki:
     image: grafana/loki:3.5.1
+    restart: unless-stopped
   grafana:
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
@@ -34,5 +35,6 @@ services:
     image: grafana/grafana:11.5.5
     ports:
       - "3000:3000"
+    restart: unless-stopped
 volumes:
   tgbot_db:
