@@ -1,10 +1,11 @@
 import asyncio
 import logging
 import os
-import sys
 
 from os.path import join, dirname
 from dotenv import load_dotenv
+
+import logging_loki
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -35,7 +36,15 @@ async def main() -> None:
         reports_evaluation.router,
     ]
 
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    loki_handler = logging_loki.LokiHandler(
+        url="http://loki:3100/loki/api/v1/push",
+        tags={"application": "telegram-bot"},
+        version="1",
+    )
+    logging.basicConfig(
+        level=logging.INFO, handlers=[logging.StreamHandler(), loki_handler]
+    )
+
     load_dotenv(dotenv_dir)
 
     db_path = init_db()
