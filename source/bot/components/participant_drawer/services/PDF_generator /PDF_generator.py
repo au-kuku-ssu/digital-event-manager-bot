@@ -214,7 +214,6 @@ def create_pdf(event_name, Session_text, Speakers, ListText):
     c.save()
     print(f"PDF-файл успешно создан: {file_name}")
 	
-event_name = input("Введите название мероприятия: ")
 with open("./Session.txt", "r", encoding="utf-8") as f:
   Session_text = f.read()
 with open("./Speakers_in_Session.txt", "r", encoding="utf-8") as f:
@@ -222,4 +221,4 @@ with open("./Speakers_in_Session.txt", "r", encoding="utf-8") as f:
 with open("./List_of_Speakers.txt", "r", encoding="utf-8") as f:
     ListText = f.read()
 
-create_pdf(event_name, Session_text, Speakers, ListText)
+create_pdf("test name", Session_text, Speakers, ListText)
