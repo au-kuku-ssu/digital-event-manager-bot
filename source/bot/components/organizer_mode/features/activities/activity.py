@@ -1,23 +1,23 @@
 from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from components.participant_drawer.features.activities.data import (
+from components.organizer_mode.features.activities.data import (
     ACTIVITY_DATA_NAME,
     YAML_PATH,
 )
-from components.participant_drawer.features.activities.prefixes import (
+from components.organizer_mode.features.activities.prefixes import (
     ActivitiesPrefixes as Prefixes,
     ACTIVITIES_PREFIX, 
 )
-from components.participant_drawer.features.activities.prefixes import CommitteePrefixes
-from components.participant_drawer.tools import getstr
-from components.participant_drawer.prefixes import PREFIX
+from components.organizer_mode.features.activities.prefixes import CommitteePrefixes
+from components.organizer_mode.tools import getstr
+from components.organizer_mode.prefixes import PREFIX
 
 router = Router()
 
 
 @router.callback_query(lambda c: c.data == f"{ACTIVITIES_PREFIX}main")
-async def cb_pd_activity_choosing(
+async def cb_om_activity_choosing(
     callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     """ """
@@ -43,7 +43,7 @@ async def cb_pd_activity_choosing(
 
 
 @router.callback_query(F.data.startswith(f"{Prefixes.PREFIX}choose"))
-async def cb_pd_activity_menu(
+async def cb_om_activity_menu(
     callback_query: types.CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     lang = "ru"

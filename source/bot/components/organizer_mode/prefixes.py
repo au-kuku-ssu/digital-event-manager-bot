@@ -1,4 +1,4 @@
-PREFIX = "cb_pd_"
+PREFIX = "cb_om_"
 
 ACTIVITIES_PREFIX = f"{PREFIX}activities_"
 

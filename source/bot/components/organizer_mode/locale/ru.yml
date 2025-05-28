@@ -1,0 +1,25 @@
+ru:
+  organizer_mode:
+    main:
+      caption: |
+        Добро пожаловать в <b>Сервис жеребьевки участников</b>!
+
+        По приказу романа крылова тут ничего нет. 
+      back: ⬅️ Назад
+    activities: 
+      caption: Мероприятия
+      committee: 
+        caption: Оргкомитет
+        add: Добавить
+        edit: Редактироватьв
+        get: Посмотреть
+        full_name: ФИО
+        degree: Степень
+        title: Должность
+        position: Позиция
+        contact_info: Контактная информация
+        break: Остановить
+        reject: Отклонить
+        accept: Подтвердить
+        back: ⬅️ Назад
+      back: ⬅️ Назад

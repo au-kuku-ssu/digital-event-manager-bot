@@ -1,4 +1,4 @@
-from source.bot.components.participant_drawer.prefixes import (APPLICATION_PREFIX)
+from source.bot.components.organizer_mode.prefixes import (APPLICATION_PREFIX)
 
 
 class ApplicationPrefixes:

@@ -2,34 +2,34 @@ from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from components.participant_drawer.db.database import Database as pd_db
-from components.participant_drawer.features.activities.data import (
+from components.organizer_mode.db.database import Database as pd_db
+from components.organizer_mode.features.activities.data import (
     SAVE_BUTTON_NAME,
     YAML_PATH,
 )
-from components.participant_drawer.features.activities.fsm_states import (
+from components.organizer_mode.features.activities.fsm_states import (
     CommitteeAddingStates as AddingStates,
 )
-from components.participant_drawer.features.activities.fsm_states import (
+from components.organizer_mode.features.activities.fsm_states import (
     CommitteeEditingStates as EditingStates,
 )
-from components.participant_drawer.features.activities.keyboards import (
+from components.organizer_mode.features.activities.keyboards import (
     CommitteeKeyboards as Keyboards,
 )
-from components.participant_drawer.features.activities.prefixes import (
+from components.organizer_mode.features.activities.prefixes import (
     ActivitiesPrefixes,
 )
-from components.participant_drawer.features.activities.prefixes import (
+from components.organizer_mode.features.activities.prefixes import (
     CommitteePrefixes as Prefixes,
 )
-from components.participant_drawer.tools import getstr
+from components.organizer_mode.tools import getstr
 from components.shared.db import Database
 
 router = Router()
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.PREFIX}menu")
-async def cb_pd_committee_menu(
+async def cb_om_committee_menu(
     callback_query: types.CallbackQuery, bot: Bot, state: FSMContext, activity: str
 ) -> None:
     """ """
@@ -62,15 +62,15 @@ async def cb_pd_committee_menu(
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.PREFIX}break")
-async def cb_pd_add_committee_participant_break(
+async def cb_om_add_committee_participant_break(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, activity: str
 ) -> None:
     await state.clear()
-    await cb_pd_committee_menu(callback_query, bot, state, activity)
+    await cb_om_committee_menu(callback_query, bot, state, activity)
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.PREFIX}add")
-async def cb_pd_add_committee_participant(
+async def cb_om_add_committee_participant(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, activity: str
 ) -> None:
     await state.set_state(AddingStates.name)
@@ -84,7 +84,7 @@ async def cb_pd_add_committee_participant(
 
 
 @router.message(AddingStates.name)
-async def cb_pd_add_committee_participant_name(
+async def cb_om_add_committee_participant_name(
     message: types.Message, bot: Bot, state: FSMContext, activity: str
 ) -> None:
     full_name = message.text.split()
@@ -123,7 +123,7 @@ async def cb_pd_add_committee_participant_name(
 
 
 @router.message(AddingStates.degree)
-async def cb_pd_add_committee_participant_degree(
+async def cb_om_add_committee_participant_degree(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(degree=message.text)
@@ -143,7 +143,7 @@ async def cb_pd_add_committee_participant_degree(
 
 
 @router.message(AddingStates.title)
-async def cb_pd_add_committee_participant_title(
+async def cb_om_add_committee_participant_title(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(title=message.text)
@@ -163,7 +163,7 @@ async def cb_pd_add_committee_participant_title(
 
 
 @router.message(AddingStates.position)
-async def cb_pd_add_committee_participant_position(
+async def cb_om_add_committee_participant_position(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(position=message.text)
@@ -183,7 +183,7 @@ async def cb_pd_add_committee_participant_position(
 
 
 @router.message(AddingStates.contact_info)
-async def cb_pd_add_committee_participant_contact_info(
+async def cb_om_add_committee_participant_contact_info(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     keyboard = InlineKeyboardBuilder()
@@ -217,7 +217,7 @@ async def cb_pd_add_committee_participant_contact_info(
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.ADD}accept")
-async def cb_pd_add_committee_participant_accept(
+async def cb_om_add_committee_participant_accept(
     callback_query: CallbackQuery,
     bot: Bot,
     state: FSMContext,
@@ -235,14 +235,14 @@ async def cb_pd_add_committee_participant_accept(
     # id = pd_db.insert(db, "people", data)
     # pd_db.insert(db, "organizers", {"id": id, "contact_number": contact_number})
     await state.clear()
-    await cb_pd_committee_menu(callback_query, bot, state, activity)
+    await cb_om_committee_menu(callback_query, bot, state, activity)
 
 
 # ____________________________ EDIT ____________________________
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.PREFIX}edit")
-async def cb_pd_edit_committee_participant(
+async def cb_om_edit_committee_participant(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, db
 ) -> None:
     participants: dict[str, int] = None
@@ -261,7 +261,7 @@ async def cb_pd_edit_committee_participant(
 
 
 @router.callback_query(F.data.startswith(Prefixes.EDIT_CHOOSE_PARTICIPANT))
-async def cb_pd_edit_committee_choose_participant(
+async def cb_om_edit_committee_choose_participant(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     id = int(callback_query.data.split("_")[-1])
@@ -281,7 +281,7 @@ async def cb_pd_edit_committee_choose_participant(
 
 
 @router.callback_query(F.data.startswith(Prefixes.EDIT_CHOOSE_PARTICIPANT))
-async def cb_pd_edit_committee_participant_choose_field(
+async def cb_om_edit_committee_participant_choose_field(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     id = int(callback_query.data.split("_")[-1])
@@ -293,35 +293,35 @@ async def cb_pd_edit_committee_participant_choose_field(
 
 
 @router.message(EditingStates.name)
-async def cb_pd_edit_committee_participant_name(
+async def cb_om_edit_committee_participant_name(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(name=message.text)
 
 
 @router.message(EditingStates.degree)
-async def cb_pd_edit_committee_participant_degree(
+async def cb_om_edit_committee_participant_degree(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(degree=message.text)
 
 
 @router.message(EditingStates.title)
-async def cb_pd_edit_committee_participant_rank(
+async def cb_om_edit_committee_participant_rank(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(rank=message.text)
 
 
 @router.message(EditingStates.position)
-async def cb_pd_edit_committee_participant_position(
+async def cb_om_edit_committee_participant_position(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(position=message.text)
 
 
 @router.message(EditingStates.contact_info)
-async def cb_pd_edit_committee_participant_contact_info(
+async def cb_om_edit_committee_participant_contact_info(
     message: types.Message, bot: Bot, state: FSMContext
 ) -> None:
     await state.update_data(contact_info=message.text)
@@ -330,7 +330,7 @@ async def cb_pd_edit_committee_participant_contact_info(
 @router.callback_query(
     lambda cbk: cbk.data == f"{Prefixes.EDIT_CHOOSE_FIELD}{SAVE_BUTTON_NAME}"
 )
-async def cb_pd_edit_committee_participant_save(
+async def cb_om_edit_committee_participant_save(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext, db
 ) -> None:
     participant_changes = await state.get_data()
@@ -356,7 +356,7 @@ async def cb_pd_edit_committee_participant_save(
 
 
 @router.callback_query(lambda c: c.data == f"{Prefixes.PREFIX}get")
-async def cb_pd_get_committee_participant(
+async def cb_om_get_committee_participant(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     participant: dict = None
@@ -374,7 +374,7 @@ async def cb_pd_get_committee_participant(
     )
 
 
-async def frontend_cb_pd_get_committee_participants(
+async def frontend_cb_om_get_committee_participants(
     callback_query: CallbackQuery, bot: Bot, state: FSMContext
 ) -> None:
     participants: list[str] = None

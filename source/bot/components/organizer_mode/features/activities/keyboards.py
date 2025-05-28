@@ -1,5 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardMarkup
-from components.participant_drawer.features.activities.prefixes import CommitteePrefixes
+from components.organizer_mode.features.activities.prefixes import CommitteePrefixes
 
 
 class CommitteeKeyboards:

@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
-from components.participant_drawer.prefixes import PREFIX
-from source.bot.components.participant_drawer.features.applicationsService.prefixes import ApplicationPrefixes
+from components.organizer_mode.prefixes import PREFIX
+from source.bot.components.organizer_mode.features.applicationsService.prefixes import ApplicationPrefixes
 
 
 # Меню управления заявками

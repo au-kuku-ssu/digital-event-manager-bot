@@ -1,12 +1,12 @@
 from aiogram import Router
-from components.participant_drawer.features.activities.activity import (
+from components.organizer_mode.features.activities.activity import (
     router as activity_router,
 )
-from components.participant_drawer.features.activities.committee import (
+from components.organizer_mode.features.activities.committee import (
     router as committee_router,
 )
-from components.participant_drawer.features.activities.middleware import RestoreDataMiddleware
-from components.participant_drawer.features.activities.data import ACTIVITY_DATA_NAME
+from components.organizer_mode.features.activities.middleware import RestoreDataMiddleware
+from components.organizer_mode.features.activities.data import ACTIVITY_DATA_NAME
 
 # activities_router = Router()
 # activities_router.include_routers(committee_router, activity_router)
