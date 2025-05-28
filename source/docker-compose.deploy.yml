@@ -2,6 +2,10 @@
 services:
   bot:
     image: ${IMAGE_REF}
-    restart: unless_stopped
+    restart: unless-stopped
+    volumes:
+    - tgbot_db:/app/bot/database/instance/
     environment:
       - TG_BOT_TOKEN=${TG_BOT_TOKEN}
+volumes:
+  tgbot_db:
